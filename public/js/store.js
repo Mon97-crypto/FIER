@@ -8,6 +8,12 @@ const W = 3400, H = 1500, D = 2500;
 const RAIL_Y = -1000, RAIL_Z = 70;
 const GW = 360, GH = (GW * 640) / 500, GAP = 390;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+// Phones/tablets (and every iOS browser, which is WebKit) get lighter garments: SVG filters are
+// expensive to rasterise there and iOS caps graphics memory per tab.
+const LITE = matchMedia('(pointer: coarse)').matches || /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const DETAIL = LITE ? 'low' : 'high';
+const KW = LITE ? 3 : 2; // wall render-resolution factor
+const KF = LITE ? 6 : 4; // floor / light pools
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
 function el(cls, html = '') {
@@ -16,12 +22,21 @@ function el(cls, html = '') {
   if (html) e.innerHTML = html;
   return e;
 }
-function place(e, { x = 0, y = 0, z = 0, ry = 0, rx = 0, w, h }) {
-  if (w) e.style.width = w + 'px';
-  if (h) e.style.height = h + 'px';
+// k > 1 renders the element at 1/k resolution and scales it up: for soft, text-free surfaces
+// (walls, floor, light pools) this cuts GPU memory by k² with no visible difference.
+function place(e, { x = 0, y = 0, z = 0, ry = 0, rx = 0, w, h, k = 1 }) {
   e._c = { x, y, z };
   e._r = w && h ? Math.hypot(w, h) / 2 : 0;
-  e.style.transform = `translate3d(${x}px,${y}px,${z}px) rotateY(${ry}deg) rotateX(${rx}deg) translate(-50%,-50%)`;
+  if (w && h) {
+    e.style.width = w / k + 'px';
+    e.style.height = h / k + 'px';
+    if (k !== 1) e.style.setProperty('--k', k);
+    e.style.transform = `translate3d(${x}px,${y}px,${z}px) rotateY(${ry}deg) rotateX(${rx}deg) translate(${-w / 2}px,${-h / 2}px)${k !== 1 ? ` scale(${k})` : ''}`;
+  } else {
+    if (w) e.style.width = w + 'px';
+    if (h) e.style.height = h + 'px';
+    e.style.transform = `translate3d(${x}px,${y}px,${z}px) rotateY(${ry}deg) rotateX(${rx}deg) translate(-50%,-50%)`;
+  }
   return e;
 }
 // axis-aligned box (for plinth / shelving depth)
@@ -41,7 +56,7 @@ function box(cls, { x, y, z, w, h, d }) {
 
 // Large surfaces are split into tiles so each tile can be hidden when it falls behind the
 // camera (browsers render planes that cross the camera plane with heavy distortion).
-function surface(cls, { cx, cy, cz, ry = 0, rx = 0, w, h, nx, ny }) {
+function surface(cls, { cx, cy, cz, ry = 0, rx = 0, w, h, nx, ny, k = 1 }) {
   const tw = w / nx, th = h / ny;
   const ax = rx ? [1, 0, 0] : [Math.cos((ry * Math.PI) / 180), 0, -Math.sin((ry * Math.PI) / 180)];
   const ay = rx ? [0, Math.cos((rx * Math.PI) / 180), Math.sin((rx * Math.PI) / 180)] : [0, 1, 0];
@@ -50,11 +65,11 @@ function surface(cls, { cx, cy, cz, ry = 0, rx = 0, w, h, nx, ny }) {
     for (let j = 0; j < ny; j++) {
       const u = -w / 2 + tw * (i + 0.5), v = -h / 2 + th * (j + 0.5);
       const t = el('tile ' + cls);
-      t.style.setProperty('--ox', -tw * i + 'px');
-      t.style.setProperty('--oy', -th * j + 'px');
-      t.style.setProperty('--pw', w + 'px');
-      t.style.setProperty('--ph', h + 'px');
-      out.push(place(t, { x: cx + ax[0] * u + ay[0] * v, y: cy + ax[1] * u + ay[1] * v, z: cz + ax[2] * u + ay[2] * v, ry, rx, w: tw + 1, h: th + 1 }));
+      t.style.setProperty('--ox', (-tw * i) / k + 'px');
+      t.style.setProperty('--oy', (-th * j) / k + 'px');
+      t.style.setProperty('--pw', w / k + 'px');
+      t.style.setProperty('--ph', h / k + 'px');
+      out.push(place(t, { x: cx + ax[0] * u + ay[0] * v, y: cy + ax[1] * u + ay[1] * v, z: cz + ax[2] * u + ay[2] * v, ry, rx, w: tw + 2, h: th + 2, k }));
     }
   return out;
 }
@@ -73,6 +88,7 @@ export class Boutique {
     this.colors = PRODUCTS.map((p) => p.colors[0]);
     this.fits = PRODUCTS.map(() => 'men');
     this.view = 'intro';
+    viewport.classList.toggle('lite', LITE);
     this.focusIndex = -1;
     this.hover = -1;
     this.railX = PRODUCTS.length > 1 ? -GAP * 1.5 : 0;
@@ -104,30 +120,30 @@ export class Boutique {
     // shell (tiled)
     this.cull = [];
     const shell = [
-      ...surface('wall back plaster', { cx: 0, cy: -H / 2, cz: 0, w: W, h: H, nx: 5, ny: 2 }),
-      ...surface('wall side left plaster', { cx: -W / 2, cy: -H / 2, cz: D / 2, ry: 90, w: D, h: H, nx: 5, ny: 2 }),
-      ...surface('wall side right plaster', { cx: W / 2, cy: -H / 2, cz: D / 2, ry: -90, w: D, h: H, nx: 5, ny: 2 }),
-      ...surface('floor', { cx: 0, cy: 0, cz: D / 2, rx: 90, w: W, h: D, nx: 6, ny: 5 }),
+      ...surface('wall back plaster', { cx: 0, cy: -H / 2, cz: 0, w: W, h: H, nx: 5, ny: 2, k: KW }),
+      ...surface('wall side left plaster', { cx: -W / 2, cy: -H / 2, cz: D / 2, ry: 90, w: D, h: H, nx: 5, ny: 2, k: KW }),
+      ...surface('wall side right plaster', { cx: W / 2, cy: -H / 2, cz: D / 2, ry: -90, w: D, h: H, nx: 5, ny: 2, k: KW }),
+      ...surface('floor', { cx: 0, cy: 0, cz: D / 2, rx: 90, w: W, h: D, nx: 6, ny: 5, k: KF }),
     ];
     shell.forEach((t) => add(t));
     this.cull.push(...shell);
-    add(place(el('baseboard'), { y: -22, z: 2, w: W, h: 44 }));
+    add(place(el('baseboard'), { y: -22, z: 2, w: W, h: 44, k: 2 }));
     for (const [x, ry] of [[-W / 2 + 2, 90], [W / 2 - 2, -90]])
-      for (let k = 0; k < 5; k++) this.cull.push(add(place(el('baseboard'), { x, y: -22, z: (D / 5) * (k + 0.5), ry, w: D / 5 + 1, h: 44 })));
+      for (let k = 0; k < 5; k++) this.cull.push(add(place(el('baseboard'), { x, y: -22, z: (D / 5) * (k + 0.5), ry, w: D / 5 + 1, h: 44, k: 2 })));
 
     // storefront facade (you start outside and walk in through the doorway)
     const doorW = 1700, doorH = 1180;
     this.facade = [
-      add(place(el('facade'), { x: -(W / 2 + doorW / 2) / 2 - 300, y: -H / 2, z: D, w: W / 2 - doorW / 2 + 600, h: H })),
-      add(place(el('facade'), { x: (W / 2 + doorW / 2) / 2 + 300, y: -H / 2, z: D, w: W / 2 - doorW / 2 + 600, h: H })),
+      add(place(el('facade'), { x: -(W / 2 + doorW / 2) / 2 - 300, y: -H / 2, z: D, w: W / 2 - doorW / 2 + 600, h: H, k: 4 })),
+      add(place(el('facade'), { x: (W / 2 + doorW / 2) / 2 + 300, y: -H / 2, z: D, w: W / 2 - doorW / 2 + 600, h: H, k: 4 })),
       add(place(el('facade top', `<div class="sign"><span>Rare</span><em>Collections</em><small>by Sathish</small></div>`), { y: -(H + doorH) / 2 - 150, z: D, w: doorW, h: H - doorH + 300 })),
     ];
 
     // light pools on the back wall + ceiling fixtures + light cones
     for (const x of [-1170, -390, 390, 1170]) {
-      add(place(el('pool'), { x, y: -900, z: 1, w: 1100, h: 1300 }));
+      add(place(el('pool'), { x, y: -900, z: 1, w: 1100, h: 1300, k: KF }));
       add(place(el('fixture'), { x, y: -H + 2, z: 420, rx: -90, w: 70, h: 70 }));
-      add(place(el('cone'), { x, y: -H + 380, z: 300, w: 520, h: 760 }));
+      add(place(el('cone'), { x, y: -H + 380, z: 300, w: 520, h: 760, k: KF }));
     }
 
     // wordmark + neon on the back wall
@@ -143,7 +159,7 @@ export class Boutique {
 
     // garments
     this.garments = PRODUCTS.map((p, i) => {
-      const g = el('garment', `<div class="g-swing"><div class="g-flip"><div class="g-face front">${teeSVG({ product: p, color: this.colors[i], fit: this.fits[i] })}</div><div class="g-face back"></div></div></div>`);
+      const g = el('garment', `<div class="g-swing"><div class="g-flip"><div class="g-face front">${teeSVG({ product: p, color: this.colors[i], fit: this.fits[i], detail: DETAIL })}</div><div class="g-face back"></div></div></div>`);
       g.dataset.i = i;
       g.setAttribute('role', 'button');
       g.setAttribute('aria-label', `${p.name} tee, ${inr(499)}`);
@@ -158,7 +174,7 @@ export class Boutique {
     this.cull.push(...this.garments, ...this.garments.map((g) => g._label));
 
     // center plinth with folded stacks (Tee of the Day)
-    add(place(el('floor-shadow'), { y: -2, z: 1350, rx: 90, w: 1150, h: 520 }));
+    add(place(el('floor-shadow'), { y: -2, z: 1350, rx: 90, w: 1150, h: 520, k: 4 }));
     add(place(el('table', '<div class="table-top"></div><div class="table-front"><span>Folded · Ready to ship</span></div>'), { y: -95, z: 1420, w: 980, h: 190 }));
     [[-300, 0], [0, 1], [300, 2]].forEach(([x, k]) => {
       const p = PRODUCTS[(k * 3 + 1) % PRODUCTS.length];
@@ -248,14 +264,14 @@ export class Boutique {
     if (color) this.colors[i] = color;
     if (fit) this.fits[i] = fit;
     const g = this.garments[i];
-    g.querySelector('.g-face.front').innerHTML = teeSVG({ product: PRODUCTS[i], color: this.colors[i], fit: this.fits[i] });
+    g.querySelector('.g-face.front').innerHTML = teeSVG({ product: PRODUCTS[i], color: this.colors[i], fit: this.fits[i], detail: DETAIL });
     g.querySelector('.g-face.back').innerHTML = '';
     if (g.classList.contains('flipped')) this.flip(i, true);
   }
   flip(i, force) {
     const g = this.garments[i];
     const back = g.querySelector('.g-face.back');
-    if (!back.innerHTML) back.innerHTML = teeSVG({ product: PRODUCTS[i], color: this.colors[i], fit: this.fits[i], view: 'back' });
+    if (!back.innerHTML) back.innerHTML = teeSVG({ product: PRODUCTS[i], color: this.colors[i], fit: this.fits[i], view: 'back', detail: DETAIL });
     g.classList.toggle('flipped', force ?? !g.classList.contains('flipped'));
     return g.classList.contains('flipped');
   }
@@ -368,10 +384,10 @@ export class Boutique {
     const k = 1 - Math.pow(1 - 0.075, dt / 16.7); // frame-rate independent easing
     for (const key of ['x', 'y', 'z', 'yaw', 'pitch']) c[key] += (t[key] - c[key]) * k;
     this.camera.style.transform = `translateZ(${this.P}px) rotateX(${c.pitch.toFixed(3)}deg) rotateY(${c.yaw.toFixed(3)}deg) translate3d(${(-c.x).toFixed(2)}px,${(-c.y).toFixed(2)}px,${(-c.z).toFixed(2)}px)`;
-    const outside = c.z > D + 700;
-    if (outside !== this._outside) {
-      this._outside = outside;
-      this.facade.forEach((f) => (f.style.visibility = outside ? 'visible' : 'hidden'));
+    // the storefront facade only exists for the walk-in; drop it once inside to free GPU memory
+    if (this.facade && c.z < D + 700) {
+      this.facade.forEach((f) => f.remove());
+      this.facade = null;
     }
     // hide anything that is (partly) behind the camera
     const yaw = (c.yaw * Math.PI) / 180;
