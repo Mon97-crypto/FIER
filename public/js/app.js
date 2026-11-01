@@ -138,9 +138,10 @@ function buildBoutique() {
       t.classList.add('added');
       t.textContent = 'Added to bag ✓';
       $('#pdpViewBag').hidden = false;
+      toast(`${p.name} (${shop.fits[i] === 'women' ? 'Women' : 'Men'} · ${pdpSel.size}) added to your bag`);
       setTimeout(() => {
         t.classList.remove('added');
-        t.textContent = 'Add to bag';
+        t.textContent = `Add to bag · ${inr(UNIT_PRICE)}`;
       }, 1800);
     } else if (t.id === 'pdpViewBag') $('#cartBtn').click();
     else if (t.id === 'pdpSize') $('#sizeGuideOpen').click();
@@ -151,28 +152,34 @@ function buildBoutique() {
 function renderPDP(i) {
   const p = PRODUCTS[i];
   const color = shop.colors[i], fit = shop.fits[i];
+  const prevScroll = $('#pdpBody .pdp-scroll')?.scrollTop || 0;
+  // Two parts: details scroll; size + "Add to bag" are pinned to the bottom so they are
+  // always visible, even when the panel is a short bottom sheet on phones.
   $('#pdpBody').innerHTML = `
+  <div class="pdp-scroll">
     <p class="pdp-cat">Rare Tee · No. ${String(p.no).padStart(2, '0')} / ${String(PRODUCTS.length).padStart(2, '0')}</p>
-    <h2>${esc(p.name)}</h2>
-    <p class="deva">${esc(p.deva)}</p>
+    <h2>${esc(p.name)} <span class="deva">${esc(p.deva)}</span></h2>
     <p class="tagline">${esc(p.tagline)}</p>
     <div class="pdp-price"><b>${inr(UNIT_PRICE)}</b><span>or any 2 for ₹899 · 4 for ₹1,599</span></div>
     <span class="ltd">Limited edition · 150 pieces${state.totd === p.id ? ' · Tee of the day' : ''}</span>
-    <div class="opt"><div class="opt-label">Colour <em>${TEE_COLORS[color].name}</em></div>
+    <div class="opt"><div class="opt-label"><span>Colour <em>${TEE_COLORS[color].name}</em></span><button class="link" id="pdpFlip">${shop.garments[i].classList.contains('flipped') ? 'View front' : 'View back'}</button></div>
       <div class="swatches" role="radiogroup" aria-label="Colour">${p.colors.map((k) => `<button role="radio" aria-checked="${k === color}" aria-label="${TEE_COLORS[k].name}" title="${TEE_COLORS[k].name}" data-color="${k}" style="--sw:${TEE_COLORS[k].hex}"></button>`).join('')}</div></div>
     <div class="opt"><div class="opt-label">Fit</div>
       <div class="seg" role="radiogroup" aria-label="Fit">${Object.entries(FITS).map(([k, f]) => `<button role="radio" aria-checked="${k === fit}" data-fit="${k}">${f.label}<small>${f.sub}</small></button>`).join('')}</div></div>
-    <div class="opt"><div class="opt-label">Select size <button class="link" id="pdpSize">Size guide</button></div>
-      <div class="sizes" role="radiogroup" aria-label="Size">${SIZES.map((z) => `<button role="radio" aria-checked="${pdpSel.size === z}" data-size="${z}">${z}</button>`).join('')}</div>
-      <p class="err" id="pdpSizeErr" style="min-height:0;margin-top:6px"></p></div>
-    <div class="pdp-actions">
-      <button class="btn primary lg full" id="pdpAdd">Add to bag</button>
-      <div class="row"><button class="btn ghost grow" id="pdpBuy">Buy now</button><button class="btn ghost grow" id="pdpFlip">View back</button></div>
-      <button class="view-cart" id="pdpViewBag" hidden>View bag →</button>
-    </div>
     <p class="pdp-story">${esc(p.story)}</p>
     <ul class="pdp-specs"><li>DTF print: vivid, soft-hand, stretch-safe</li><li>Premium combed cotton, ${fit === 'women' ? 'fitted women’s cut' : 'regular men’s fit'}</li><li>Free shipping on ₹799+ · COD available</li><li>7-day size exchange</li></ul>
-    <div class="pdp-nav"><button data-nav="-1">← ${esc(PRODUCTS[(i + PRODUCTS.length - 1) % PRODUCTS.length].name)}</button><button data-nav="1">${esc(PRODUCTS[(i + 1) % PRODUCTS.length].name)} →</button></div>`;
+    <div class="pdp-nav"><button data-nav="-1">← ${esc(PRODUCTS[(i + PRODUCTS.length - 1) % PRODUCTS.length].name)}</button><button data-nav="1">${esc(PRODUCTS[(i + 1) % PRODUCTS.length].name)} →</button></div>
+  </div>
+  <div class="pdp-buy">
+    <div class="opt-label">Select size <span><button class="link" id="pdpSize">Size guide</button> <button class="view-cart" id="pdpViewBag" hidden>View bag →</button></span></div>
+    <div class="sizes" role="radiogroup" aria-label="Size">${SIZES.map((z) => `<button role="radio" aria-checked="${pdpSel.size === z}" data-size="${z}">${z}</button>`).join('')}</div>
+    <p class="err" id="pdpSizeErr"></p>
+    <div class="pdp-actions">
+      <button class="btn primary lg grow" id="pdpAdd">Add to bag · ${inr(UNIT_PRICE)}</button>
+      <button class="btn ghost lg" id="pdpBuy">Buy now</button>
+    </div>
+  </div>`;
+  $('#pdpBody .pdp-scroll').scrollTop = prevScroll;
 }
 
 function openSizeGuide() {

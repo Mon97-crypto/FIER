@@ -217,7 +217,7 @@ export class Boutique {
       case 'rail': return { x: this.railX, y: -800, z: pt ? 1250 : 1180, yaw: 0, pitch: 0 };
       case 'focus': {
         const x = this.gx(this.focusIndex);
-        return pt ? { x, y: -420, z: 1060, yaw: 0, pitch: 0 } : { x: x + 175, y: -786, z: 660, yaw: 0, pitch: 0 };
+        return pt ? { x, y: -290, z: 1350, yaw: 0, pitch: 0 } : { x: x + 175, y: -786, z: 660, yaw: 0, pitch: 0 };
       }
       case 'shelves': return { x: W / 2 - (pt ? 2000 : 1650), y: -700, z: 1250, yaw: 90, pitch: 0 };
       case 'gallery': return { x: -W / 2 + (pt ? 1500 : 1350), y: -760, z: 1250, yaw: -90, pitch: 0 };
