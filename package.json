@@ -1,7 +1,7 @@
 {
-  "name": "fier",
+  "name": "rare-collections",
   "version": "0.1.0",
-  "description": "FIER — Fear None. Burn Bright. Storefront for the Ramayana: Part 1 DTF tee drop.",
+  "description": "Rare Collections by Sathish: a walk-in 3D virtual boutique for the Ramayana: Part 1 DTF tee drop.",
   "type": "module",
   "private": true,
   "scripts": {

@@ -1,7 +1,8 @@
 import { PRODUCTS, SIZES, FITS, TEE_COLORS, SIZE_CHART, getProduct } from './catalog.js';
 import { BUNDLES, UNIT_PRICE, SPIN_REWARDS, TICKER, computeTotals, inr } from './pricing.js';
 import { teeSVG } from './tee.js';
-import { HangerRack } from './rack.js';
+import { Boutique } from './store.js';
+import { foldedSVG } from './tee.js';
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -43,8 +44,6 @@ const state = {
   user: null,
   cart: JSON.parse(localStorage.getItem('fier_cart') || '[]').filter((i) => getProduct(i.productId)),
   coupon: localStorage.getItem('fier_coupon') || '',
-  sel: { productId: PRODUCTS[0].id, fit: 'men', color: PRODUCTS[0].colors[0], size: 'M', qty: 1 },
-  view: 'front',
   totd: null,
 };
 const saveCart = () => {
@@ -71,290 +70,122 @@ function startCountdown(endsAt) {
   setInterval(tick, 1000);
 }
 
-// ---------------- glossy bubbles (hero particles) ----------------
-function embers() {
-  const c = $('#embers');
-  const ctx = c.getContext('2d');
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const dpr = devicePixelRatio || 1;
-  let w, h, parts;
-  const cols = ['#D4FF3F', '#E34234', '#ffffff', '#a687d6', '#D4FF3F'];
-  const spawn = (anywhere) => ({
-    x: Math.random() * w, y: anywhere ? Math.random() * h : h + 40 * dpr, r: (Math.random() * 16 + 4) * dpr,
-    v: (Math.random() * 0.5 + 0.25) * dpr, s: Math.random() * 6.28, c: cols[(Math.random() * cols.length) | 0],
-  });
-  const resize = () => {
-    w = c.width = c.offsetWidth * dpr;
-    h = c.height = c.offsetHeight * dpr;
-    parts = Array.from({ length: Math.min(34, Math.floor(w / (40 * dpr))) }, () => spawn(true));
-  };
-  resize();
-  addEventListener('resize', resize);
-  let visible = true;
-  new IntersectionObserver(([e]) => (visible = e.isIntersecting)).observe(c);
-  (function loop() {
-    if (visible && !reduce) {
-      ctx.clearRect(0, 0, w, h);
-      for (const p of parts) {
-        p.y -= p.v;
-        p.s += 0.012;
-        p.x += Math.sin(p.s) * 0.4 * dpr;
-        if (p.y < -p.r * 2) Object.assign(p, spawn(false));
-        const g = ctx.createRadialGradient(p.x - p.r * 0.35, p.y - p.r * 0.4, p.r * 0.05, p.x, p.y, p.r);
-        g.addColorStop(0, 'rgba(255,255,255,.95)');
-        g.addColorStop(0.3, p.c);
-        g.addColorStop(1, p.c + '55');
-        ctx.globalAlpha = 0.75;
-        ctx.fillStyle = g;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-    requestAnimationFrame(loop);
-  })();
-}
+// ---------------- virtual boutique + product panel ----------------
+let shop;
+const pdpSel = { size: null };
+const HINTS = {
+  intro: 'Click the rail to browse the collection',
+  store: 'Click the rail, or scroll, to browse the collection',
+  rail: 'Drag, scroll or use ← → to browse. Click a tee to view it.',
+  focus: 'Pick your size and make it yours',
+  shelves: 'Bundles: mix any designs. Click a shelf.',
+  gallery: 'Click the portrait to read Sathish’s story',
+};
 
-// ---------------- hanger rack + hover card ----------------
-let rack;
-const hc = { state: null, hideT: 0 };
-
-function rackItemHTML(p, color, fit) {
-  return `${teeSVG({ product: p, color, fit, hanger: true })}<span class="price-tag">${inr(UNIT_PRICE)}</span>${state.totd === p.id ? '<span class="totd-badge">⭐ Tee of the day</span>' : ''}`;
-}
-
-function buildRack() {
-  const items = PRODUCTS.map((p, i) => {
-    const el = document.createElement('div');
-    el.className = 'hanger-item';
-    el.setAttribute('aria-label', `${p.name}: ${p.tagline}`);
-    el.innerHTML = `<div class="swing">${rackItemHTML(p, p.colors[0], 'men')}</div><span class="item-label">${String(i + 1).padStart(2, '0')} · ${esc(p.name)}</span>`;
-    return el;
-  });
-  rack = new HangerRack({
-    section: $('#drop'),
-    sticky: $('#rackSticky'),
-    stage: $('#rackStage'),
-    container: $('#rackItems'),
-    items,
-    onHover: (i) => showCard(i),
-    onLeave: (now) => (now ? hideCard() : hideCardSoon()),
-    onPick: (i) => openStudio(PRODUCTS[i].id),
-    onIndex: (i) => {
-      $('#rackCount').textContent = String(i + 1).padStart(2, '0');
-      $('#rackName').textContent = PRODUCTS[i].name;
+function buildBoutique() {
+  shop = new Boutique({
+    viewport: $('#viewport'),
+    camera: $('#camera'),
+    room: $('#room'),
+    onView: (v) => {
+      $('#store').dataset.view = v;
+      $('#storeHint').textContent = HINTS[v] || '';
+      $$('#pills [data-view]').forEach((b) => b.classList.toggle('active', b.dataset.view === v || (v === 'focus' && b.dataset.view === 'rail')));
+      const pdp = $('#pdp');
+      const open = v === 'focus';
+      pdp.classList.toggle('open', open);
+      pdp.setAttribute('aria-hidden', String(!open));
     },
-    onFrame: (r) => {
-      $('#rackBar').style.width = (r.pos / (r.n - 1)) * 100 + '%';
-      placeCard();
+    onFocus: (i) => renderPDP(i),
+    onBlur: () => {},
+    onBundle: (qty) => {
+      toast(`${BUNDLES[qty - 1].name}: any ${qty} tee${qty > 1 ? 's' : ''} for ${inr(BUNDLES[qty - 1].price)}. Mix designs freely!`);
+      shop.setView('rail');
     },
+    onFounder: () => $('#story').scrollIntoView({ behavior: 'smooth' }),
   });
-  $('#rackPrev').onclick = () => rack.prev();
-  $('#rackNext').onclick = () => rack.next();
+  $$('#pills [data-view]').forEach((b) => (b.onclick = () => shop.setView(b.dataset.view)));
+  $('#railPrev').onclick = () => shop.step(-1);
+  $('#railNext').onclick = () => shop.step(1);
+  $('#pdpClose').onclick = () => shop.setView('rail');
 
-  const card = $('#hoverCard');
-  card.addEventListener('pointerenter', () => {
-    clearTimeout(hc.hideT);
-    rack.cancelIntent();
-  });
-  card.addEventListener('pointerleave', (e) => e.pointerType === 'mouse' && hideCardSoon());
-  card.addEventListener('click', (e) => {
-    const s = hc.state;
+  $('#pdpBody').addEventListener('click', (e) => {
     const t = e.target.closest('button');
-    if (!s || !t) return;
-    if (t.dataset.hfit) s.fit = t.dataset.hfit;
-    else if (t.dataset.hsize) s.size = t.dataset.hsize;
-    else if (t.dataset.hcolor) s.color = t.dataset.hcolor;
-    else if (t.id === 'hcAdd') {
-      addToCart({ productId: PRODUCTS[s.i].id, fit: s.fit, color: s.color, size: s.size, qty: 1 });
-      toast(`🔥 ${PRODUCTS[s.i].name} (${s.fit === 'women' ? 'W' : 'M'} · ${s.size}) added to bag`);
-      return;
-    } else if (t.id === 'hcStudio') {
-      Object.assign(state.sel, { fit: s.fit, size: s.size, color: s.color });
-      return openStudio(PRODUCTS[s.i].id, true);
-    } else return;
-    renderCard();
-    // dress the hanging tee in the chosen colour / cut
-    $('.swing', rack.items[s.i]).innerHTML = rackItemHTML(PRODUCTS[s.i], s.color, s.fit);
-  });
-  // tapping empty space on the rack closes the card (touch)
-  $('#rackStage').addEventListener('click', (e) => {
-    if (!e.target.closest('.hanger-item') && !e.target.closest('.hover-card')) hideCard();
+    if (!t) return;
+    const i = shop.focusIndex;
+    if (i < 0) return;
+    const p = PRODUCTS[i];
+    if (t.dataset.color) {
+      shop.restyle(i, { color: t.dataset.color });
+      renderPDP(i);
+    } else if (t.dataset.fit) {
+      shop.restyle(i, { fit: t.dataset.fit });
+      renderPDP(i);
+    } else if (t.dataset.size) {
+      pdpSel.size = t.dataset.size;
+      renderPDP(i);
+    } else if (t.id === 'pdpFlip') {
+      const back = shop.flip(i);
+      t.textContent = back ? 'View front' : 'View back';
+    } else if (t.id === 'pdpAdd' || t.id === 'pdpBuy') {
+      if (!pdpSel.size) {
+        $('#pdpSizeErr').textContent = 'Select a size first';
+        $('.sizes', $('#pdpBody')).animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'translateX(0)' }], { duration: 300 });
+        return;
+      }
+      addToCart({ productId: p.id, fit: shop.fits[i], color: shop.colors[i], size: pdpSel.size, qty: 1 });
+      if (t.id === 'pdpBuy') return openCheckout();
+      t.classList.add('added');
+      t.textContent = 'Added to bag ✓';
+      $('#pdpViewBag').hidden = false;
+      setTimeout(() => {
+        t.classList.remove('added');
+        t.textContent = 'Add to bag';
+      }, 1800);
+    } else if (t.id === 'pdpViewBag') $('#cartBtn').click();
+    else if (t.id === 'pdpSize') $('#sizeGuideOpen').click();
+    else if (t.dataset.nav) shop.focus(i + Number(t.dataset.nav));
   });
 }
 
-function showCard(i) {
-  clearTimeout(hc.hideT);
+function renderPDP(i) {
   const p = PRODUCTS[i];
-  if (hc.state?.i !== i) hc.state = { i, fit: 'men', size: 'M', color: p.colors[0] };
-  renderCard();
-  const card = $('#hoverCard');
-  card.hidden = false;
-  placeCard();
-  requestAnimationFrame(() => card.classList.add('show'));
-}
-function hideCardSoon() {
-  clearTimeout(hc.hideT);
-  hc.hideT = setTimeout(hideCard, 260);
-}
-function hideCard() {
-  clearTimeout(hc.hideT);
-  const card = $('#hoverCard');
-  card.classList.remove('show');
-  if (rack) rack.hot = -1;
-  setTimeout(() => !card.classList.contains('show') && (card.hidden = true), 250);
-}
-function renderCard() {
-  const s = hc.state, p = PRODUCTS[s.i];
-  $('#hoverCard').innerHTML = `
-    <div class="hc-top"><span class="hc-tag">${esc(p.tag)}</span><span class="hc-num">${String(s.i + 1).padStart(2, '0')} / ${String(PRODUCTS.length).padStart(2, '0')}</span></div>
-    <h3>${esc(p.name)}</h3><p class="hc-deva">${esc(p.deva)}</p><p class="hc-tagline">${esc(p.tagline)}</p>
-    <p class="hc-story">${esc(p.story)}</p>
-    <div class="hc-row"><span class="hc-price">${inr(UNIT_PRICE)}</span><span class="hc-bundle">2 for ₹899 · 4 for ₹1,599</span></div>
-    <div class="hc-opts">
-      <div class="mini" role="radiogroup" aria-label="Fit">${Object.entries(FITS).map(([k, f]) => `<button role="radio" aria-checked="${s.fit === k}" data-hfit="${k}">${f.label}</button>`).join('')}</div>
-      <div class="mini" role="radiogroup" aria-label="Size">${SIZES.map((z) => `<button role="radio" aria-checked="${s.size === z}" data-hsize="${z}">${z}</button>`).join('')}</div>
+  const color = shop.colors[i], fit = shop.fits[i];
+  $('#pdpBody').innerHTML = `
+    <p class="pdp-cat">Rare Tee · No. ${String(p.no).padStart(2, '0')} / ${String(PRODUCTS.length).padStart(2, '0')}</p>
+    <h2>${esc(p.name)}</h2>
+    <p class="deva">${esc(p.deva)}</p>
+    <p class="tagline">${esc(p.tagline)}</p>
+    <div class="pdp-price"><b>${inr(UNIT_PRICE)}</b><span>or any 2 for ₹899 · 4 for ₹1,599</span></div>
+    <span class="ltd">Limited edition · 150 pieces${state.totd === p.id ? ' · Tee of the day' : ''}</span>
+    <div class="opt"><div class="opt-label">Colour <em>${TEE_COLORS[color].name}</em></div>
+      <div class="swatches" role="radiogroup" aria-label="Colour">${p.colors.map((k) => `<button role="radio" aria-checked="${k === color}" aria-label="${TEE_COLORS[k].name}" title="${TEE_COLORS[k].name}" data-color="${k}" style="--sw:${TEE_COLORS[k].hex}"></button>`).join('')}</div></div>
+    <div class="opt"><div class="opt-label">Fit</div>
+      <div class="seg" role="radiogroup" aria-label="Fit">${Object.entries(FITS).map(([k, f]) => `<button role="radio" aria-checked="${k === fit}" data-fit="${k}">${f.label}<small>${f.sub}</small></button>`).join('')}</div></div>
+    <div class="opt"><div class="opt-label">Select size <button class="link" id="pdpSize">Size guide</button></div>
+      <div class="sizes" role="radiogroup" aria-label="Size">${SIZES.map((z) => `<button role="radio" aria-checked="${pdpSel.size === z}" data-size="${z}">${z}</button>`).join('')}</div>
+      <p class="err" id="pdpSizeErr" style="min-height:0;margin-top:6px"></p></div>
+    <div class="pdp-actions">
+      <button class="btn primary lg full" id="pdpAdd">Add to bag</button>
+      <div class="row"><button class="btn ghost grow" id="pdpBuy">Buy now</button><button class="btn ghost grow" id="pdpFlip">View back</button></div>
+      <button class="view-cart" id="pdpViewBag" hidden>View bag →</button>
     </div>
-    <div class="hc-colors">${p.colors.map((k) => `<button role="radio" aria-checked="${s.color === k}" aria-label="${TEE_COLORS[k].name}" title="${TEE_COLORS[k].name}" data-hcolor="${k}" style="--sw:${TEE_COLORS[k].hex}"></button>`).join('')}<span>${TEE_COLORS[s.color].name}</span></div>
-    <div class="hc-actions"><button class="btn primary grow" id="hcAdd">Add to bag</button><button class="btn dark" id="hcStudio">Customise →</button></div>`;
-}
-function placeCard() {
-  const card = $('#hoverCard');
-  if (card.hidden || !rack || !hc.state || innerWidth <= 700) return;
-  const tee = $('.tee', rack.items[hc.state.i]);
-  const st = $('#rackStage').getBoundingClientRect();
-  const r = tee.getBoundingClientRect();
-  const cw = card.offsetWidth, ch = card.offsetHeight;
-  let left = r.right - st.left - r.width * 0.12;
-  if (left + cw > st.width - 12) left = r.left - st.left - cw + r.width * 0.12;
-  left = Math.max(12, Math.min(left, st.width - cw - 12));
-  const top = Math.max(12, Math.min(r.top - st.top + r.height * 0.22, st.height - ch - 12));
-  card.style.left = left + 'px';
-  card.style.top = top + 'px';
+    <p class="pdp-story">${esc(p.story)}</p>
+    <ul class="pdp-specs"><li>DTF print: vivid, soft-hand, stretch-safe</li><li>Premium combed cotton, ${fit === 'women' ? 'fitted women’s cut' : 'regular men’s fit'}</li><li>Free shipping on ₹799+ · COD available</li><li>7-day size exchange</li></ul>
+    <div class="pdp-nav"><button data-nav="-1">← ${esc(PRODUCTS[(i + PRODUCTS.length - 1) % PRODUCTS.length].name)}</button><button data-nav="1">${esc(PRODUCTS[(i + 1) % PRODUCTS.length].name)} →</button></div>`;
 }
 
-function openStudio(id, fromCard) {
-  hideCard();
-  if (!fromCard) state.sel.color = getProduct(id).colors.includes(state.sel.color) ? state.sel.color : getProduct(id).colors[0];
-  selectProduct(id);
-  const cfg = $('#configurator');
-  cfg.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  cfg.classList.remove('flash-in');
-  void cfg.offsetWidth;
-  cfg.classList.add('flash-in');
-}
-
-function buildPicker() {
-  $('#designPicker').innerHTML = PRODUCTS.map((p) => `<button role="tab" data-pick="${p.id}" aria-selected="false">${teeSVG({ product: p, color: p.colors[0] })}${esc(p.name)}</button>`).join('');
-  $('#designPicker').onclick = (e) => {
-    const b = e.target.closest('[data-pick]');
-    if (b) selectProduct(b.dataset.pick);
-  };
-}
-
-function heroTees() {
-  $('#heroTeeL').innerHTML = teeSVG({ product: getProduct('lanka-dahan'), color: 'black', hanger: true });
-  $('#heroTeeR').innerHTML = teeSVG({ product: getProduct('suryavanshi'), color: 'black', fit: 'women', hanger: true });
-}
-
-// ---------------- configurator ----------------
-function selectProduct(id) {
-  const p = getProduct(id);
-  const s = state.sel;
-  if (s.productId !== id) {
-    s.productId = id;
-    if (!p.colors.includes(s.color)) s.color = p.colors[0];
-  }
-  $$('#designPicker [data-pick]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.pick === id)));
-  $('#pTag').textContent = p.tag;
-  $('#pTotd').hidden = state.totd !== p.id;
-  $('#pName').textContent = p.name;
-  $('#pDeva').textContent = p.deva;
-  $('#pTagline').textContent = p.tagline;
-  $('#pStory').textContent = p.story;
-  renderOptions();
-}
-
-function renderTee() {
-  const p = getProduct(state.sel.productId);
-  $('#teeFront').innerHTML = teeSVG({ product: p, color: state.sel.color, fit: state.sel.fit, view: 'front', hanger: true });
-  $('#teeBack').innerHTML = teeSVG({ product: p, color: state.sel.color, fit: state.sel.fit, view: 'back', hanger: true });
-}
-
-function renderOptions() {
-  const p = getProduct(state.sel.productId);
-  const s = state.sel;
-  $('#fitOptions').innerHTML = Object.entries(FITS)
-    .map(([k, f]) => `<button role="radio" aria-checked="${s.fit === k}" data-fit="${k}">${f.label}<small>${f.sub}</small></button>`)
+function openSizeGuide() {
+  $('#sizeTable').innerHTML = Object.entries(SIZE_CHART)
+    .map(([fit, rows]) => `<h4>${FITS[fit].label} · ${FITS[fit].sub}</h4><table><tr><th>Size</th><th>Chest</th><th>Length</th></tr>${Object.entries(rows).map(([z, [c, l]]) => `<tr><td>${z}</td><td>${c}"</td><td>${l}"</td></tr>`).join('')}</table>`)
     .join('');
-  $('#colorOptions').innerHTML = p.colors
-    .map((k) => `<button role="radio" aria-checked="${s.color === k}" aria-label="${TEE_COLORS[k].name}" title="${TEE_COLORS[k].name}" data-color="${k}" style="--sw:${TEE_COLORS[k].hex}"></button>`)
-    .join('');
-  $('#colorName').textContent = '— ' + TEE_COLORS[s.color].name;
-  $('#sizeOptions').innerHTML = SIZES.map((z) => `<button role="radio" aria-checked="${s.size === z}" data-size="${z}">${z}</button>`).join('');
-  $('#qtyVal').textContent = s.qty;
-  $('#addToCart').textContent = `Add to cart · ${inr(UNIT_PRICE * s.qty)}`;
-  renderTee();
+  $('#sizeModal').showModal();
 }
 
-function bindConfigurator() {
-  $('#fitOptions').onclick = (e) => {
-    const b = e.target.closest('[data-fit]');
-    if (b) (state.sel.fit = b.dataset.fit), renderOptions();
-  };
-  $('#colorOptions').onclick = (e) => {
-    const b = e.target.closest('[data-color]');
-    if (b) (state.sel.color = b.dataset.color), renderOptions();
-  };
-  $('#sizeOptions').onclick = (e) => {
-    const b = e.target.closest('[data-size]');
-    if (b) (state.sel.size = b.dataset.size), renderOptions();
-  };
-  $('#qtyMinus').onclick = () => ((state.sel.qty = Math.max(1, state.sel.qty - 1)), renderOptions());
-  $('#qtyPlus').onclick = () => ((state.sel.qty = Math.min(20, state.sel.qty + 1)), renderOptions());
-  $$('.view-toggle [data-view]').forEach(
-    (b) =>
-      (b.onclick = () => {
-        state.view = b.dataset.view;
-        $$('.view-toggle [data-view]').forEach((x) => x.classList.toggle('active', x === b));
-        $('#tee3d').style.transform = state.view === 'back' ? 'rotateY(180deg)' : '';
-      }),
-  );
-  $('#spinTee').onclick = () => {
-    const t = $('#tee3d');
-    t.style.transform = '';
-    state.view = 'front';
-    $$('.view-toggle [data-view]').forEach((x) => x.classList.toggle('active', x.dataset.view === 'front'));
-    t.classList.remove('spin');
-    void t.offsetWidth;
-    t.classList.add('spin');
-  };
-  // mouse tilt
-  const viewer = $('.viewer');
-  viewer.addEventListener('pointermove', (e) => {
-    if (e.pointerType !== 'mouse') return;
-    const r = viewer.getBoundingClientRect();
-    const x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
-    const base = state.view === 'back' ? 180 : 0;
-    $('#tee3d').style.transform = `rotateY(${base + x * 24}deg) rotateX(${-y * 12}deg)`;
-  });
-  viewer.addEventListener('pointerleave', () => ($('#tee3d').style.transform = state.view === 'back' ? 'rotateY(180deg)' : ''));
-
-  $('#addToCart').onclick = () => {
-    addToCart({ ...state.sel });
-    const p = getProduct(state.sel.productId);
-    toast(`🔥 ${p.name} (${state.sel.fit === 'women' ? 'W' : 'M'} · ${state.sel.size}) added`);
-  };
-  $('#buyNow').onclick = () => {
-    addToCart({ ...state.sel });
-    openCheckout();
-  };
-  $('#sizeGuideBtn').onclick = () => {
-    $('#sizeTable').innerHTML = Object.entries(SIZE_CHART)
-      .map(([fit, rows]) => `<h4>${FITS[fit].label} · ${FITS[fit].sub}</h4><table><tr><th>Size</th><th>Chest</th><th>Length</th></tr>${Object.entries(rows).map(([z, [c, l]]) => `<tr><td>${z}</td><td>${c}"</td><td>${l}"</td></tr>`).join('')}</table>`)
-      .join('');
-    $('#sizeModal').showModal();
-  };
+function renderMarquee() {
+  const words = ['Fear none', 'Rare Collections', 'Burn bright', 'by Sathish', 'Limited to 150 pieces', 'Drop 01 · Ramayana'];
+  const html = words.map((w) => `<span>${esc(w)}</span>`).join('');
+  $('#marquee').innerHTML = html + html + html;
 }
 
 // ---------------- cart ----------------
@@ -375,8 +206,8 @@ function addToCart(sel) {
 function totalsRows(t, { withCoupon = true } = {}) {
   return `
     <div class="sum-row"><span>${t.qty} tee${t.qty === 1 ? '' : 's'} @ ${inr(UNIT_PRICE)}</span><span>${inr(t.mrp)}</span></div>
-    ${t.bundleSavings ? `<div class="sum-row save"><span>🔥 ${t.bundleName} bundle</span><span>−${inr(t.bundleSavings)}</span></div>` : ''}
-    ${withCoupon && t.discount ? `<div class="sum-row save"><span>🎟️ ${esc(t.coupon.code)}</span><span>−${inr(t.discount)}</span></div>` : ''}
+    ${t.bundleSavings ? `<div class="sum-row save"><span>${t.bundleName} bundle</span><span>−${inr(t.bundleSavings)}</span></div>` : ''}
+    ${withCoupon && t.discount ? `<div class="sum-row save"><span>Code ${esc(t.coupon.code)}</span><span>−${inr(t.discount)}</span></div>` : ''}
     <div class="sum-row"><span>Shipping${withCoupon && t.coupon?.code === 'FREESHIP' ? ' (FREESHIP)' : ''}</span><span>${t.shipping ? inr(t.shipping) : 'FREE'}</span></div>
     <div class="sum-row total"><span>Total</span><span>${inr(t.total)}</span></div>`;
 }
@@ -389,11 +220,11 @@ function renderCart() {
   // bundle meter
   const pct = Math.min(100, (count / 4) * 100);
   $('#bundleMeter').innerHTML = count
-    ? `${count >= 4 ? `🐒 <b>SQUAD unlocked!</b> Every extra tee is just ₹399.` : `Add <b>1 more</b> tee for just <b>${inr(t.next.extra)}</b> → <b>${t.next.name}</b> bundle (save ${inr(t.next.totalSave)})`}<div class="meter"><span style="width:${pct}%"></span></div>`
-    : `🔥 Bundle any 2 for ₹899 · 3 for ₹1,299 · 4 for ₹1,599<div class="meter"><span style="width:0"></span></div>`;
+    ? `${count >= 4 ? `<b>Squad unlocked.</b> Every extra tee is just ₹399.` : `Add <b>1 more</b> tee for just <b>${inr(t.next.extra)}</b> to unlock the <b>${t.next.name}</b> bundle (save ${inr(t.next.totalSave)})`}<div class="meter"><span style="width:${pct}%"></span></div>`
+    : `Bundle any 2 for ₹899 · 3 for ₹1,299 · 4 for ₹1,599<div class="meter"><span style="width:0"></span></div>`;
 
   if (!state.cart.length) {
-    $('#cartItems').innerHTML = `<div class="cart-empty"><div class="big">🏹</div><p>Your arsenal is empty.<br/>Every warrior needs armour.</p><button class="btn primary" data-goto="#drop">Pick a tee</button></div>`;
+    $('#cartItems').innerHTML = `<div class="cart-empty"><div class="big">Your bag is empty.</div><p>Rare things don’t wait long on the rail.</p><button class="btn primary" data-goto="#store">Visit the boutique</button></div>`;
     $('#cartSummary').innerHTML = '';
     return;
   }
@@ -401,7 +232,7 @@ function renderCart() {
     .map((i, idx) => {
       const p = getProduct(i.productId);
       return `<div class="ci" style="--p1:${p.palette[0]}">
-        <div class="thumb">${teeSVG({ product: p, color: i.color, fit: i.fit })}</div>
+        <div class="thumb">${teeSVG({ product: p, color: i.color, fit: i.fit, detail: 'low' })}</div>
         <div><h5>${esc(p.name)}</h5><div class="sub">${FITS[i.fit].label} · ${i.size} · ${TEE_COLORS[i.color].name}</div>
           <div class="qty"><button data-dec="${idx}" aria-label="Decrease">−</button><output>${i.qty}</output><button data-inc="${idx}" aria-label="Increase">+</button></div></div>
         <div style="text-align:right"><div>${inr(UNIT_PRICE * i.qty)}</div><button class="rm" data-rm="${idx}">Remove</button></div>
@@ -409,7 +240,7 @@ function renderCart() {
     })
     .join('');
   $('#cartSummary').innerHTML = `${totalsRows(t)}
-    ${t.coupon ? `<p class="coupon-msg ok">🎟️ ${esc(t.coupon.label)} applied</p>` : state.coupon && t.couponError ? `<p class="coupon-msg bad">${esc(t.couponError)}</p>` : ''}
+    ${t.coupon ? `<p class="coupon-msg ok">✓ ${esc(t.coupon.label)} applied</p>` : state.coupon && t.couponError ? `<p class="coupon-msg bad">${esc(t.couponError)}</p>` : ''}
     <button class="btn primary full lg" id="toCheckout" style="margin-top:12px">Checkout · ${inr(t.total)}</button>`;
   $('#toCheckout').onclick = openCheckout;
 }
@@ -442,15 +273,27 @@ function renderBundles() {
   $('#bundleGrid').innerHTML = BUNDLES.map((b) => {
     const mrp = b.qty * UNIT_PRICE;
     const hot = b.qty === 4;
-    return `<div class="bundle ${hot ? 'hot' : b.qty === 2 ? 'dark' : ''}">
-      ${hot ? '<span class="ribbon">BEST VALUE</span>' : b.qty === 2 ? '<span class="ribbon">POPULAR</span>' : ''}
-      <div class="em">${b.emoji}</div><h3>${b.name}</h3>
-      <div class="bp">${inr(b.price)}${b.qty > 1 ? `<s>${inr(mrp)}</s>` : ''}</div>
-      <div class="per">${b.qty > 1 ? `${inr(b.price / b.qty)}/tee · save ${inr(mrp - b.price)}` : 'per tee'}</div>
+    const stack = Array.from({ length: b.qty }, (_, j) => {
+      const p = PRODUCTS[(j * 3 + b.qty) % PRODUCTS.length];
+      return `<div class="fold" style="--j:${j}">${foldedSVG({ product: p, color: p.colors[0] })}</div>`;
+    }).join('');
+    return `<div class="bundle ${hot ? 'hot' : ''}">
+      ${hot ? '<span class="ribbon">Best value</span>' : b.qty === 2 ? '<span class="ribbon">Most loved</span>' : ''}
+      <div class="b-art"><div class="b-stack">${stack}</div></div>
+      <h3>${b.name}</h3>
+      <div class="bp"><b>${inr(b.price)}</b>${b.qty > 1 ? `<s>${inr(mrp)}</s>` : ''}</div>
+      <div class="per">${b.qty > 1 ? `${inr(b.price / b.qty)} per tee · save ${inr(mrp - b.price)}` : 'per tee'}</div>
       <p>${esc(b.blurb)}</p>
-      <a class="btn ${hot ? 'lime' : b.qty === 2 ? 'primary' : 'dark'} full" href="#drop">Build your ${b.name}</a>
+      <button class="btn ${hot ? 'light' : 'primary'} full" data-shop="${b.qty}">Build your ${b.name}</button>
     </div>`;
   }).join('');
+  $('#bundleGrid').onclick = (e) => {
+    const b = e.target.closest('[data-shop]');
+    if (!b) return;
+    $('#store').scrollIntoView({ behavior: 'smooth' });
+    setTimeout(() => shop.setView('rail'), 500);
+    toast(`Pick any ${b.dataset.shop} tee${b.dataset.shop > 1 ? 's' : ''}. The bundle price applies in your bag.`);
+  };
 }
 
 // ---------------- spin wheel ----------------
@@ -460,16 +303,16 @@ function buildWheel() {
     const a = ((deg - 90) * Math.PI) / 180;
     return [Math.cos(a) * r, Math.sin(a) * r].map((v) => v.toFixed(2)).join(',');
   };
-  const ink = (hex) => (['#D4FF3F', '#CBB3E8'].includes(hex) ? '#150e20' : '#fff');
-  let svg = `<circle r="${R + 8}" fill="#150e20" stroke="#D4FF3F" stroke-width="4"/>`;
+  const ink = (hex) => (['#e9dcc4', '#e3c98f', '#b8924f'].includes(hex) ? '#1d1611' : '#fff');
+  let svg = `<circle r="${R + 10}" fill="#1d1611"/><circle r="${R + 6}" fill="none" stroke="#b8924f" stroke-width="3"/>`;
   SPIN_REWARDS.forEach((r, i) => {
     const a0 = i * seg, a1 = a0 + seg, mid = a0 + seg / 2;
-    svg += `<path d="M0,0 L${pt(a0, R)} A${R},${R} 0 0 1 ${pt(a1, R)}Z" fill="${r.color}" stroke="#150e20" stroke-width="2"/>`;
-    svg += `<text transform="rotate(${mid}) translate(0 ${-R + 26})" text-anchor="middle" font-family="Unbounded, Anton" font-weight="900" font-size="17" fill="${ink(r.color)}">${esc(r.label.split(' ')[0])}</text>`;
-    svg += `<text transform="rotate(${mid}) translate(0 ${-R + 46})" text-anchor="middle" font-family="Space Grotesk" font-weight="700" font-size="11" fill="${ink(r.color)}" opacity=".9">${esc(r.label.split(' ').slice(1).join(' '))}</text>`;
+    svg += `<path d="M0,0 L${pt(a0, R)} A${R},${R} 0 0 1 ${pt(a1, R)}Z" fill="${r.color}" stroke="#1d1611" stroke-width="1.5"/>`;
+    svg += `<text transform="rotate(${mid}) translate(0 ${-R + 26})" text-anchor="middle" font-family="Fraunces, Georgia" font-weight="900" font-size="19" fill="${ink(r.color)}">${esc(r.label.split(' ')[0])}</text>`;
+    svg += `<text transform="rotate(${mid}) translate(0 ${-R + 46})" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="10" letter-spacing="1" fill="${ink(r.color)}" opacity=".85">${esc(r.label.split(' ').slice(1).join(' '))}</text>`;
   });
-  for (let i = 0; i < n; i++) svg += `<circle cx="${pt(i * seg, R + 1).split(',')[0]}" cy="${pt(i * seg, R + 1).split(',')[1]}" r="4" fill="#D4FF3F"/>`;
-  svg += `<circle r="36" fill="#150e20" stroke="#D4FF3F" stroke-width="4"/><text y="7" text-anchor="middle" font-family="Unbounded, Anton" font-weight="900" font-size="18" fill="#D4FF3F">FIER</text>`;
+  for (let i = 0; i < n; i++) svg += `<circle cx="${pt(i * seg, R + 1).split(',')[0]}" cy="${pt(i * seg, R + 1).split(',')[1]}" r="3.5" fill="#e3c98f"/>`;
+  svg += `<circle r="38" fill="#1d1611" stroke="#b8924f" stroke-width="3"/><text y="9" text-anchor="middle" font-family="Fraunces, Georgia" font-weight="900" font-size="24" fill="#e3c98f">Rare</text>`;
   $('#wheel').innerHTML = svg;
 
   let rotation = 0;
@@ -477,7 +320,7 @@ function buildWheel() {
   const prev = JSON.parse(localStorage.getItem('fier_spin') || 'null');
   if (prev?.day === today) {
     $('#spinBtn').disabled = true;
-    $('#spinBtn').textContent = 'Come back tomorrow 🌅';
+    $('#spinBtn').textContent = 'Come back tomorrow';
     $('#spinResult').innerHTML = `Today’s win: <b>${esc(prev.label)}</b> — code <button class="code" data-copy="${esc(prev.code)}">${esc(prev.code)}</button>`;
   }
   $('#spinBtn').onclick = async () => {
@@ -493,8 +336,8 @@ function buildWheel() {
         state.coupon = reward.code;
         saveCart();
         renderCart();
-        $('#spinResult').innerHTML = `🎉 You won <b>${esc(reward.label)}</b>! Code <button class="code" data-copy="${esc(reward.code)}">${esc(reward.code)}</button> is now in your cart.`;
-        btn.textContent = 'Come back tomorrow 🌅';
+        $('#spinResult').innerHTML = `You won <b>${esc(reward.label)}</b>. Code <button class="code" data-copy="${esc(reward.code)}">${esc(reward.code)}</button> is now in your bag.`;
+        btn.textContent = 'Come back tomorrow';
         burst($('#spinResult'));
       }, 5100);
     } catch (e) {
@@ -509,7 +352,8 @@ function burst(anchor) {
   const r = anchor.getBoundingClientRect();
   for (let i = 0; i < 18; i++) {
     const s = document.createElement('span');
-    s.textContent = ['🔥', '✨', '🏹', '🪔'][i % 4];
+    s.textContent = ['✦', '✧', '✦', '❋'][i % 4];
+    s.style.color = ['#d2552f', '#b8924f', '#1d1611', '#c69c6d'][i % 4];
     Object.assign(s.style, { position: 'fixed', left: r.left + r.width / 2 + 'px', top: r.top + 'px', fontSize: '22px', pointerEvents: 'none', zIndex: 70, transition: 'transform 1.2s cubic-bezier(.2,.8,.2,1), opacity 1.2s' });
     document.body.appendChild(s);
     requestAnimationFrame(() => {
@@ -583,7 +427,7 @@ function onLogin(user) {
   state.user = user;
   $('#loginModal').close();
   renderAccount();
-  toast(`Welcome, ${user.name.split(' ')[0]}! Fear none. 🔥`);
+  toast(`Welcome, ${user.name.split(' ')[0]}. Fear none.`);
   const fn = afterLogin;
   afterLogin = null;
   fn?.();
@@ -711,10 +555,10 @@ async function razorpayPay(order, rz, address) {
     amount: rz.amount,
     currency: rz.currency,
     order_id: rz.orderId,
-    name: 'FIER',
+    name: 'Rare Collections by Sathish',
     description: `Order ${order.id}`,
     prefill: { name: address.name, email: state.user.email, contact: address.phone },
-    theme: { color: '#ff7a00' },
+    theme: { color: '#d2552f' },
     handler: async (resp) => {
       try {
         const { order: paid } = await api(`/api/orders/${order.id}/pay`, { method: 'POST', body: resp });
@@ -735,7 +579,7 @@ function orderDone(order) {
   saveCart();
   renderCart();
   $('#successId').textContent = order.id;
-  const msg = encodeURIComponent(`Just copped my FIER × Ramayana Part 1 tee 🔥 Fear none. Burn bright. ${location.origin}`);
+  const msg = encodeURIComponent(`Just got a limited-edition tee from Rare Collections by Sathish. Fear none. Burn bright. ${location.origin}`);
   $('#shareWa').href = `https://wa.me/?text=${msg}`;
   $('#copyOrderId').onclick = () => copy(order.id, 'Order ID copied');
   $('#successTrack').onclick = () => {
@@ -750,7 +594,7 @@ function orderDone(order) {
 function confetti(canvas) {
   const ctx = canvas.getContext('2d');
   const w = (canvas.width = canvas.offsetWidth), h = (canvas.height = canvas.offsetHeight);
-  const cols = ['#D4FF3F', '#E34234', '#CBB3E8', '#150e20', '#ffffff'];
+  const cols = ['#d2552f', '#b8924f', '#e3c98f', '#1d1611', '#c69c6d'];
   const ps = Array.from({ length: 140 }, () => ({ x: w / 2, y: h / 3, vx: (Math.random() - 0.5) * 12, vy: Math.random() * -10 - 3, r: Math.random() * 6 + 3, c: cols[(Math.random() * 5) | 0], a: Math.random() * 6 }));
   let frames = 0;
   (function f() {
@@ -843,7 +687,7 @@ async function openOrders() {
           <div class="row gap">${o.status === 'pending_payment' && o.paymentMethod === 'demo' ? `<button class="btn primary sm" data-pay="${esc(o.id)}" data-amt="${o.total}">Pay now</button>` : ''}<button class="btn ghost sm" data-track="${esc(o.id)}">Track</button></div></div>`,
             )
             .join('')
-        : '<p class="muted">No orders yet. The fire awaits. 🔥</p>') +
+        : '<p class="muted">No orders yet. The rail is waiting.</p>') +
       `<p style="margin-top:18px"><span class="muted small">Signed in as ${esc(state.user.email)}</span> · <button class="link" id="logoutBtn">Log out</button></p>`;
     $('#logoutBtn').onclick = async () => {
       await api('/api/auth/logout', { method: 'POST' });
@@ -893,8 +737,8 @@ function bindJoin() {
     try {
       const r = await api('/api/subscribe', { method: 'POST', body: { email: f.get('email'), name: f.get('name') } });
       msg.innerHTML = r.already
-        ? `You’re already in the Sena 🐒 Your code: <button class="code" data-copy="${r.code}">${r.code}</button>`
-        : `Welcome to the Vanara Sena! 🎉 Your 10% code: <button class="code" data-copy="${r.code}">${r.code}</button>`;
+        ? `You’re already in the circle. Your code: <button class="code" data-copy="${r.code}">${r.code}</button>`
+        : `Welcome to the inner circle. Your 10% code: <button class="code" data-copy="${r.code}">${r.code}</button>`;
       e.target.reset();
       burst(msg);
     } catch (err) {
@@ -917,13 +761,24 @@ function revealOnScroll() {
 }
 
 // ---------------- boot ----------------
+function intro() {
+  const c = $('#curtain');
+  const reveal = () => {
+    if (c.classList.contains('gone')) return;
+    c.classList.add('gone');
+    // walk in through the storefront doorway
+    setTimeout(() => shop.setView('store'), 250);
+  };
+  setTimeout(reveal, 1700);
+  c.addEventListener('click', reveal);
+}
+
 async function boot() {
   $('#year').textContent = new Date().getFullYear();
   renderTicker(TICKER);
-  embers();
-  heroTees();
-  buildPicker();
-  bindConfigurator();
+  renderMarquee();
+  buildBoutique();
+  intro();
   bindCart();
   bindAuth();
   bindCheckout();
@@ -931,12 +786,15 @@ async function boot() {
   bindJoin();
   bindModals();
   renderBundles();
-  buildRack();
   buildWheel();
   revealOnScroll();
   renderCart();
   renderAccount();
-  selectProduct(state.sel.productId);
+  const sg = document.createElement('button');
+  sg.id = 'sizeGuideOpen';
+  sg.hidden = true;
+  sg.onclick = openSizeGuide;
+  document.body.appendChild(sg);
 
   const [config, offers, me] = await Promise.allSettled([api('/api/config'), api('/api/offers'), api('/api/me')]);
   if (config.status === 'fulfilled') state.config = config.value;
@@ -944,9 +802,6 @@ async function boot() {
     renderTicker(offers.value.ticker);
     startCountdown(offers.value.flash.endsAt);
     state.totd = offers.value.teeOfTheDay;
-    selectProduct(state.sel.productId);
-    const ti = PRODUCTS.findIndex((p) => p.id === state.totd);
-    if (ti >= 0) $('.swing', rack.items[ti]).innerHTML = rackItemHTML(PRODUCTS[ti], PRODUCTS[ti].colors[0], 'men');
   } else {
     const d = new Date();
     d.setHours(24, 0, 0, 0);

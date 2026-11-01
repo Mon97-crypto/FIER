@@ -1,25 +1,33 @@
-# 🔥 FIER — Fear None. Burn Bright.
+# Rare Collections by Sathish
 
-Storefront for **FIER Drop 01: the Ramayana: Part 1 collection**. It has eight original, DTF-ready tee designs at ₹499 each, in sizes S–XL, for men and women.
+**Fear None. Burn Bright.** A walk-in 3D virtual boutique for **Drop 01: the Ramayana: Part 1 collection**: eight original, DTF-ready tees at ₹499 each, in sizes S–XL, for men and women. Each design is limited to 150 pieces.
 
-## What's inside
+## The boutique
+
+The home page is a virtual store built with pure CSS 3D (no WebGL, no libraries). It's a plaster gallery with pegboard walls, track lighting, an oak display table, plants, a neon sign and a chrome rail. You arrive outside the storefront and glide in through the doorway.
+
+| Area (bottom tabs) | What happens |
+|---|---|
+| **Store** | Wide view of the whole room. Click the rail or scroll to walk up to it. |
+| **The Rail** | All 8 tees hang on wooden hangers with cotton grain, drape folds and prints that follow the fabric. Drag, swipe, scroll or use ← → to move along the rail; the tees sway as the camera passes. Hover a tee to lift it and see its name and price. |
+| **Product focus** | Click a tee and the camera moves onto it while a product panel slides in: colour (re-dyes the hanging tee), men's or women's fit (changes the cut), size, add to bag, buy now and **view back** (the tee turns around). Prev/next arrows move along the rail. |
+| **Bundles** | Turns to the oak shelving wall: folded stacks with brass price plaques for Solo, Duo, Trio and Squad. |
+| **Founder** | Turns to the gallery wall: the "Fear none. Burn bright." manifesto print, design prints and Sathish's portrait. Click the portrait to read his story. |
+
+Below the boutique: the offers counter (bundles, the Midnight Flash countdown, the Agni Chakra daily spin wheel), the founder's story, delivery tracking, the "inner circle" mailing list, and the footer.
+
+## Also included
 
 | Feature | Details |
 |---|---|
-| **3D hanger rack** | All 8 tees hang on glossy hangers from a chrome rail. Scrolling the page moves along the rail, and you can also drag, swipe, use the arrow buttons or the keyboard. Each tee swings with spring physics as it moves. **Hovering a tee** turns it to face you and opens a glass detail card (story, price, fit, size, colour, add to bag, customise); on mobile, tap a tee. |
-| **Studio** | A design picker, plus a 3D tee on its hanger that flips front/back or spins 360°. |
-| **Options** | Men's regular or women's fitted cut (different silhouettes), per-design colours, S/M/L/XL, quantity, size guide. |
-| **Gmail login** | Google Identity Services. The server checks the Google ID token and sets a signed, HttpOnly session cookie. Until `GOOGLE_CLIENT_ID` is set, a demo login that only accepts @gmail.com addresses keeps the prototype usable. |
-| **Checkout** | Address validation (Indian mobile number and PIN code), coupons, **Razorpay** (UPI/cards/netbanking, signature-verified) or **Cash on Delivery**. Without Razorpay keys, a simulated UPI payment is used instead. |
-| **Delivery tracking** | Confirmed → DTF Printing → Quality Check → Shipped → Out for Delivery → Delivered, shown as a timeline with an ETA, courier and AWB. Stages advance automatically for demos, or you set them by hand in the admin panel. |
-| **Always-on offers** | Offer ticker, bundle pricing, Midnight Flash countdown, Tee of the Day, and the **Agni Chakra** daily spin wheel. |
-| **Mailing list** | "Join the Vanara Sena" signup gives the FEARNONE10 code. Admins can export subscribers as CSV. |
-| **Founder story** | Sathish Kumar and the meaning of F.I.E.R. (Fearless · Intense · Eternal · Rising). |
-| **Admin** (`/admin`) | Revenue and print-queue stats, order list, status, courier and AWB updates, **downloadable DTF print files** (12″×14.4″ SVG), subscriber export. |
+| **Gmail login** | Google Identity Services, verified on the server, with a signed HttpOnly session cookie. Until `GOOGLE_CLIENT_ID` is set, a demo login that only accepts @gmail.com addresses keeps the prototype usable. |
+| **Checkout** | Address validation (Indian mobile number and PIN code), coupons, **Razorpay** (signature-verified) or **Cash on Delivery**. Without Razorpay keys, a simulated UPI payment is used instead. |
+| **Delivery tracking** | Confirmed → DTF Printing → Quality Check → Shipped → Out for Delivery → Delivered, shown as a timeline with an ETA, courier and AWB. Order IDs look like `RARE-261101-A1B2C3`. |
+| **Admin** (`/admin`) | Revenue and print-queue stats, order status, courier and AWB updates, **downloadable DTF print files** (12″×14.4″ SVG), subscriber CSV export. |
 
 ## Look & feel
 
-A glossy lavender `#CBB3E8`, acid-lime `#D4FF3F` and vermilion `#E34234` palette: candy-gloss buttons, glass cards, chrome rail, stickers, floating glossy bubbles and Unbounded display type.
+A warm gallery palette: plaster ivory `#f1ece4`, oak `#c69c6d`, espresso `#1d1611`, ember `#d2552f` and brass `#b8924f`, so the colourful tees pop the way they would in a real boutique. Type is Fraunces (editorial serif), Manrope (UI) and Mrs Saint Delafield (Sathish's signature).
 
 ## Pricing (`public/js/pricing.js`, shared by the browser and the server)
 
@@ -56,6 +64,6 @@ The admin key is printed in the console on first start and saved to `data/.admin
 
 ## Designs
 
-All artwork is original vector art, drawn in code (`public/js/catalog.js`): Kodanda, Lanka Dahan, Dashamukha, Rama Setu, Jatayu, Sanjeevani, Lakshman Rekha and Suryavanshi. Download print files from `/admin` → *DTF print files*. Convert text to outlines before sending them to the RIP.
+All artwork is original vector art, drawn in code (`public/js/catalog.js`); the garments, folds, hangers and fabric texture are rendered in `public/js/tee.js` and the store in `public/js/store.js`: Kodanda, Lanka Dahan, Dashamukha, Rama Setu, Jatayu, Sanjeevani, Lakshman Rekha and Suryavanshi. Download print files from `/admin` → *DTF print files*. Convert text to outlines before sending them to the RIP.
 
-> FIER is not affiliated with the producers of the film *Ramayana: Part 1*. Using the film's name, logo or stills on merchandise needs a licence from the rights holders.
+> Rare Collections by Sathish is not affiliated with the producers of the film *Ramayana: Part 1*. Using the film's name, logo or stills on merchandise needs a licence from the rights holders.

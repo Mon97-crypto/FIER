@@ -45,7 +45,7 @@ function render(orders, subscribers) {
     [live.length, 'Confirmed orders'],
     [tees, 'Tees sold'],
     [toPrint, 'In print queue'],
-    [subscribers.length, 'Vanara Sena subscribers'],
+    [subscribers.length, 'Inner circle subscribers'],
   ].map(([b, s]) => `<div class="stat"><b>${b}</b><span>${s}</span></div>`).join('');
 
   $('#orders').innerHTML = orders.length
@@ -64,11 +64,11 @@ function render(orders, subscribers) {
       </tr>`,
         )
         .join('')}</tbody></table>`
-    : '<p class="muted" style="padding:20px">No orders yet. Share the drop! 🔥</p>';
+    : '<p class="muted" style="padding:20px">No orders yet. Share the boutique!</p>';
 
   $('#print').innerHTML = `<p class="muted">Print-ready vector files (12" × 14.4", transparent background). Open in Illustrator/Inkscape, convert text to outlines, then send to your DTF RIP.</p>
     <div class="designs">${PRODUCTS.map(
-      (p) => `<div class="d">${teeSVG({ product: p, color: p.colors[0] })}<b>${esc(p.name)}</b><br/>${p.colors
+      (p) => `<div class="d">${teeSVG({ product: p, color: p.colors[0], detail: 'low' })}<b>${esc(p.name)}</b><br/>${p.colors
         .map((c) => `<a href="/api/print/${p.id}.svg?color=${c}">⬇ for ${TEE_COLORS[c].name}</a>`)
         .join('')}</div>`,
     ).join('')}</div>`;
@@ -80,7 +80,7 @@ function render(orders, subscribers) {
   $('#csv').onclick = () => {
     const rows = [['email', 'name', 'joined'], ...subscribers.map((s) => [s.email, s.name, s.at])];
     const csv = rows.map((r) => r.map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
-    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([csv], { type: 'text/csv' })), download: 'fier-subscribers.csv' });
+    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([csv], { type: 'text/csv' })), download: 'rare-collections-subscribers.csv' });
     a.click();
   };
 }

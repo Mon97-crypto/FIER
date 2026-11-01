@@ -1,4 +1,4 @@
-// FIER storefront server — zero dependencies, Node 18.17+.
+// Rare Collections by Sathish — storefront server. Zero dependencies, Node 18.17+.
 import http from 'node:http';
 import { readFile, writeFile, mkdir, rename } from 'node:fs/promises';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
@@ -186,7 +186,7 @@ function newOrderId() {
   const d = new Date();
   const ymd = d.toISOString().slice(2, 10).replace(/-/g, '');
   let id;
-  do id = `FIER-${ymd}-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
+  do id = `RARE-${ymd}-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
   while (db.orders.some((o) => o.id === id));
   return id;
 }
@@ -205,7 +205,7 @@ function trackingView(o, { full = false } = {}) {
     status = STAGES[idx].key;
     history = STAGES.slice(0, idx + 1).map((s, i) => ({ status: s.key, at: new Date(start + i * stepMs).toISOString() }));
     if (idx >= 3) {
-      courier ||= 'FIER Express (demo courier)';
+      courier ||= 'Rare Express (demo courier)';
       awb ||= 'FX' + o.id.replace(/\W/g, '').slice(-8);
     }
   }
@@ -479,7 +479,7 @@ route('GET', /^\/api\/print\/([\w-]+)\.svg$/, ({ url, params, res }) => {
   if (!svg) throw new HttpError(404, 'Unknown design.');
   res.writeHead(200, {
     'Content-Type': 'image/svg+xml; charset=utf-8',
-    'Content-Disposition': `attachment; filename="FIER-${params[0]}-${url.searchParams.get('color') || 'black'}-DTF.svg"`,
+    'Content-Disposition': `attachment; filename="RareCollections-${params[0]}-${url.searchParams.get('color') || 'black'}-DTF.svg"`,
   });
   res.end(svg);
 });
@@ -549,7 +549,7 @@ export const server = http.createServer(async (req, res) => {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   server.listen(PORT, () => {
-    console.log(`\n🔥 FIER is live at http://localhost:${PORT}`);
+    console.log(`\n✦ Rare Collections by Sathish is live at http://localhost:${PORT}`);
     console.log(`   Google login: ${GOOGLE_CLIENT_ID ? 'ON' : 'not configured'} · demo login: ${ALLOW_DEMO_LOGIN ? 'ON' : 'off'}`);
     console.log(`   Payments: ${RAZORPAY_ON ? 'Razorpay' : 'demo pay (set RAZORPAY_KEY_ID/SECRET for real payments)'} + COD`);
     console.log(`   Admin: http://localhost:${PORT}/admin  key: ${adminKey.generated ? ADMIN_KEY + '  (auto-generated, stored in data/.admin-key)' : '(from ADMIN_KEY)'}\n`);

@@ -7,10 +7,10 @@ export const FREE_SHIPPING_MIN = 799;
 export const SHIPPING_FEE = 59;
 
 export const BUNDLES = [
-  { qty: 1, name: 'Solo', price: 499, blurb: 'One tee. One vow.', emoji: '🏹' },
-  { qty: 2, name: 'Duo', price: 899, blurb: 'Rama & Lakshmana energy. Any 2 designs.', emoji: '⚔️' },
-  { qty: 3, name: 'Trio', price: 1299, blurb: 'Bring the whole Ayodhya crew. Any 3.', emoji: '🔱' },
-  { qty: 4, name: 'Squad', price: 1599, blurb: 'Vanara Sena mode. Any 4 — and ₹399 for every tee after.', emoji: '🐒' },
+  { qty: 1, name: 'Solo', price: 499, blurb: 'One rare piece. One vow.', emoji: '' },
+  { qty: 2, name: 'Duo', price: 899, blurb: 'Rama & Lakshmana energy. Any 2 designs.', emoji: '' },
+  { qty: 3, name: 'Trio', price: 1299, blurb: 'Bring the whole Ayodhya crew. Any 3.', emoji: '' },
+  { qty: 4, name: 'Squad', price: 1599, blurb: 'Vanara Sena mode. Any 4, then ₹399 for every tee after.', emoji: '' },
 ];
 
 export const COUPONS = {
@@ -25,25 +25,26 @@ export const COUPONS = {
 
 // The Agni Chakra (daily spin wheel). Order = wheel segments clockwise from the top.
 export const SPIN_REWARDS = [
-  { code: 'AGNI5', label: '5% OFF', color: '#E34234', weight: 22 },
-  { code: 'FREESHIP', label: 'FREE SHIP', color: '#D4FF3F', weight: 20 },
-  { code: 'SETU50', label: '₹50 OFF', color: '#CBB3E8', weight: 18 },
-  { code: 'FEARNONE10', label: '10% OFF', color: '#150e20', weight: 14 },
-  { code: 'VANARA100', label: '₹100 OFF', color: '#E34234', weight: 10 },
-  { code: 'AGNI15', label: '15% OFF', color: '#D4FF3F', weight: 7 },
-  { code: 'SETU50', label: '₹50 OFF', color: '#CBB3E8', weight: 6 },
-  { code: 'BURNBRIGHT20', label: '20% OFF', color: '#150e20', weight: 3 },
+  { code: 'AGNI5', label: '5% OFF', color: '#d2552f', weight: 22 },
+  { code: 'FREESHIP', label: 'FREE SHIP', color: '#e9dcc4', weight: 20 },
+  { code: 'SETU50', label: '₹50 OFF', color: '#1d1611', weight: 18 },
+  { code: 'FEARNONE10', label: '10% OFF', color: '#b8924f', weight: 14 },
+  { code: 'VANARA100', label: '₹100 OFF', color: '#d2552f', weight: 10 },
+  { code: 'AGNI15', label: '15% OFF', color: '#e9dcc4', weight: 7 },
+  { code: 'SETU50', label: '₹50 OFF', color: '#1d1611', weight: 6 },
+  { code: 'BURNBRIGHT20', label: '20% OFF', color: '#b8924f', weight: 3 },
 ];
 
 export const TICKER = [
-  '🔥 Every tee ₹499 · DTF printed · S to XL · Men & Women',
-  '⚔️ DUO — any 2 tees for ₹899',
-  '🔱 TRIO — any 3 tees for ₹1,299',
-  '🐒 SQUAD — any 4 for ₹1,599 + just ₹399 for every tee after',
-  '🚚 Free shipping on ₹799+',
-  '🎡 Spin the Agni Chakra every day for a surprise code',
-  '💌 Join the Vanara Sena and get FEARNONE10',
-  '🌙 Midnight Flash: BURNBRIGHT20 = 20% off orders of ₹1,299+',
+  'Drop 01 · Ramayana: Part 1 · each design limited to 150 pieces',
+  'Every tee ₹499 · DTF printed · S to XL · men & women',
+  'Duo: any 2 for ₹899',
+  'Trio: any 3 for ₹1,299',
+  'Squad: any 4 for ₹1,599, then ₹399 per extra tee',
+  'Free shipping on ₹799+ · Cash on delivery available',
+  'Spin the Agni Chakra daily for a surprise code',
+  'Join the inner circle for 10% off: FEARNONE10',
+  'Midnight Flash: BURNBRIGHT20 takes 20% off ₹1,299+',
 ];
 
 export function bundlePrice(qty) {

@@ -1,4 +1,4 @@
-// FIER — Drop 01: RAMAYANA · PART 1
+// Rare Collections by Sathish — Drop 01: RAMAYANA · PART 1
 // Every design is original vector artwork generated in code (viewBox 0 0 400 480),
 // so it renders crisp on screen and exports straight to a DTF print file.
 
@@ -16,7 +16,12 @@ export const TEE_COLORS = {
   white: { name: 'Bone White', hex: '#f1ede4', dark: false },
   maroon: { name: 'Sindoor Maroon', hex: '#6a1022', dark: true },
   navy: { name: 'Midnight Navy', hex: '#16224a', dark: true },
+  forest: { name: 'Deep Forest', hex: '#1f3a2e', dark: true },
+  rust: { name: 'Burnt Rust', hex: '#8a3a1e', dark: true },
+  sand: { name: 'Desert Sand', hex: '#e3d5bc', dark: false },
+  sky: { name: 'Monsoon Sky', hex: '#b8cce2', dark: false },
 };
+export const BRAND = { name: 'Rare Collections', by: 'by Sathish', ethos: 'Fear None. Burn Bright.', edition: 150 };
 
 const DISPLAY = "Anton, 'Bebas Neue', Impact, sans-serif";
 const DEVA = "'Tiro Devanagari Hindi', 'Noto Serif Devanagari', serif";
@@ -30,7 +35,7 @@ const text = (x, y, size, fill, str, extra = '') =>
 const deva = (y, fill, str, size = 30) =>
   `<text x="200" y="${y}" text-anchor="middle" font-family="${DEVA}" font-size="${size}" fill="${fill}">${str}</text>`;
 const foot = (ink, n) =>
-  `<text x="200" y="470" text-anchor="middle" font-family="${BODY}" font-size="10.5" letter-spacing="3" fill="${ink}" opacity=".65">FIER × RAMAYANA PT.1 · ${String(n).padStart(2, '0')}</text>`;
+  `<text x="200" y="470" text-anchor="middle" font-family="${BODY}" font-size="10.5" letter-spacing="3" fill="${ink}" opacity=".65">RARE COLLECTIONS · RAMAYANA PT.1 · ${String(n).padStart(2, '0')}</text>`;
 
 // Flame with rounded base. (x, base) = bottom centre, w = half width, h = height, l = tip lean
 function flamePath(x, b, w, h, l = 0) {
@@ -289,45 +294,47 @@ ${foot(ink, 8)}`;
 export const PRODUCTS = [
   {
     id: 'kodanda', name: 'Kodanda', deva: 'कोदण्ड', tagline: 'One Arrow · One Promise', tag: 'Bestseller',
-    palette: ['#ff7a00', '#e0115f', '#ffd23f'], colors: ['black', 'maroon', 'navy'], art: kodanda,
+    palette: ['#ff7a00', '#e0115f', '#ffd23f'], colors: ['maroon', 'black', 'navy', 'sand'], art: kodanda,
     story: 'The bow that never missed — because the archer never doubted. A flaming arrow drawn across a blazing sun for everyone who keeps their word.',
   },
   {
     id: 'lanka-dahan', name: 'Lanka Dahan', deva: 'लंका दहन', tagline: 'Set It Ablaze', tag: 'Viral',
-    palette: ['#ff1e56', '#ff7a00', '#ffe94d'], colors: ['black', 'maroon'], art: lanka,
+    palette: ['#ff1e56', '#ff7a00', '#ffe94d'], colors: ['black', 'rust', 'maroon'], art: lanka,
     story: 'They set his tail on fire to humiliate him. He used it to light up an entire golden city. Turn every insult into ignition.',
   },
   {
     id: 'dashamukha', name: 'Dashamukha', deva: 'दशमुख', tagline: 'Ten Heads. Zero Fear.', tag: 'Villain Arc',
-    palette: ['#b0002f', '#ffc21a', '#ff3d6e'], colors: ['black', 'navy'], art: dashamukha,
+    palette: ['#b0002f', '#ffc21a', '#ff3d6e'], colors: ['forest', 'black', 'navy'], art: dashamukha,
     story: 'Ten heads, ten crowns, one unstoppable ego. For the ones who love a villain arc — and know exactly how the story ends.',
   },
   {
     id: 'rama-setu', name: 'Rama Setu', deva: 'राम सेतु', tagline: 'Build The Impossible', tag: 'New',
-    palette: ['#00e5c7', '#3d5afe', '#7b2ff7'], colors: ['navy', 'black'], art: setu,
+    palette: ['#00e5c7', '#3d5afe', '#7b2ff7'], colors: ['navy', 'black', 'forest'], art: setu,
     story: 'An army of believers threw stones into the ocean and they floated. A bridge built on one name, under a moonlit sky.',
   },
   {
     id: 'jatayu', name: 'Jatayu', deva: 'जटायु', tagline: 'Fight Till The Last Feather', tag: 'Limited',
-    palette: ['#ff2e88', '#7b2ff7', '#ffd23f'], colors: ['black', 'white'], art: jatayu,
+    palette: ['#ff2e88', '#7b2ff7', '#ffd23f'], colors: ['white', 'black', 'sky'], art: jatayu,
     story: 'Old, outmatched, and still the first to fight. Rainbow-fire wings for the protectors who never ask if the odds are fair.',
   },
   {
     id: 'sanjeevani', name: 'Sanjeevani', deva: 'संजीवनी', tagline: 'Carry The Mountain', tag: 'New',
-    palette: ['#00e5c7', '#b6ff3b', '#ff9a00'], colors: ['black', 'navy'], art: sanjeevani,
+    palette: ['#00e5c7', '#b6ff3b', '#ff9a00'], colors: ['rust', 'black', 'navy'], art: sanjeevani,
     story: 'Couldn’t find the one herb? Bring the whole mountain. A flying peak of glowing life for the over-deliverers.',
   },
   {
     id: 'lakshman-rekha', name: 'Lakshman Rekha', deva: 'लक्ष्मण रेखा', tagline: 'Draw Your Line', tag: 'Minimal',
-    palette: ['#ff2e88', '#ff7a00', '#ffd23f'], colors: ['white', 'black', 'maroon'], art: rekha,
+    palette: ['#ff2e88', '#ff7a00', '#ffd23f'], colors: ['sand', 'white', 'black', 'maroon'], art: rekha,
     story: 'Bold type, a line of fire, and a reminder: know your limits, guard your values. The cleanest flex in the drop.',
   },
   {
     id: 'suryavanshi', name: 'Suryavanshi', deva: 'सूर्यवंशी', tagline: 'Born Of The Sun', tag: 'Hero',
-    palette: ['#ffb300', '#ff2e88', '#7b2ff7'], colors: ['black', 'white', 'maroon'], art: surya,
+    palette: ['#ffb300', '#ff2e88', '#7b2ff7'], colors: ['sky', 'black', 'white', 'maroon'], art: surya,
     story: 'Descendants of the Sun don’t dim for anyone. A 32-ray sunburst and a lotus mandala in full festival colour.',
   },
 ];
+
+PRODUCTS.forEach((p, i) => (p.no = i + 1));
 
 export const getProduct = (id) => PRODUCTS.find((p) => p.id === id);
 
@@ -338,7 +345,7 @@ export function printFileSVG(productId, colorKey) {
   const c = TEE_COLORS[colorKey] || TEE_COLORS.black;
   const ink = c.dark ? '#ffffff' : '#141414';
   return `<?xml version="1.0" encoding="UTF-8"?>
-<!-- FIER DTF print file · ${p.name} · for ${c.name} tees · print at 100% (12in x 14.4in). Convert text to outlines before RIP. -->
+<!-- Rare Collections by Sathish · DTF print file · ${p.name} · for ${c.name} tees · print at 100% (12in x 14.4in). Convert text to outlines before RIP. -->
 <svg xmlns="http://www.w3.org/2000/svg" width="12in" height="14.4in" viewBox="0 0 400 480">
 <style>@import url('https://fonts.googleapis.com/css2?family=Anton&amp;family=Space+Grotesk:wght@400;700&amp;family=Tiro+Devanagari+Hindi&amp;display=swap');</style>
 ${p.art('p', ink)}
