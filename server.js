@@ -1,7 +1,7 @@
 // Rare Collections by Sathish — storefront server. Zero dependencies, Node 18.17+.
 import http from 'node:http';
 import { readFile, writeFile, mkdir, rename } from 'node:fs/promises';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
@@ -21,8 +21,10 @@ function loadDotEnv() {
 }
 loadDotEnv();
 
+const IS_VERCEL = Boolean(process.env.VERCEL);
 const PORT = Number(process.env.PORT) || 3000;
-const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
+// Serverless platforms have a read-only filesystem except /tmp.
+const DATA_DIR = process.env.DATA_DIR || (IS_VERCEL ? '/tmp/rare-data' : path.join(__dirname, 'data'));
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
@@ -31,48 +33,73 @@ const RZP_ID = process.env.RAZORPAY_KEY_ID || '';
 const RZP_SECRET = process.env.RAZORPAY_KEY_SECRET || '';
 const RAZORPAY_ON = Boolean(RZP_ID && RZP_SECRET);
 const STEP_MIN = process.env.TRACKING_SIMULATION_MINUTES === undefined ? 2 : Number(process.env.TRACKING_SIMULATION_MINUTES);
-const COOKIE_SECURE = process.env.COOKIE_SECURE === 'true';
+const COOKIE_SECURE = process.env.COOKIE_SECURE ? process.env.COOKIE_SECURE === 'true' : IS_VERCEL;
 
-await mkdir(DATA_DIR, { recursive: true });
+// ---------- storage: Redis (Upstash / Vercel KV REST) or a local JSON file ----------
+const KV_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL || '';
+const KV_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || '';
+const KV_KEY = process.env.KV_DB_KEY || 'rare-collections:db';
+const USE_KV = Boolean(KV_URL && KV_TOKEN);
+export const STORAGE = USE_KV ? 'redis' : IS_VERCEL ? 'tmp' : 'file';
 
-function persistentSecret(envName, file) {
-  if (process.env[envName]) return { value: process.env[envName], generated: false };
-  const p = path.join(DATA_DIR, file);
-  if (existsSync(p)) return { value: readFileSync(p, 'utf8').trim(), generated: true };
-  const v = crypto.randomBytes(32).toString('hex');
-  writeFileSync(p, v, { mode: 0o600 });
-  return { value: v, generated: true };
+async function kv(command) {
+  const r = await fetch(KV_URL, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${KV_TOKEN}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(command),
+  });
+  if (!r.ok) throw new Error(`Redis request failed (${r.status})`);
+  return (await r.json()).result;
 }
-const SESSION_SECRET = persistentSecret('SESSION_SECRET', '.session-secret').value;
-const adminKey = persistentSecret('ADMIN_KEY', '.admin-key');
-const ADMIN_KEY = adminKey.value;
 
-// ---------- tiny JSON database ----------
-let db;
-try {
-  db = JSON.parse(await readFile(DB_FILE, 'utf8'));
-} catch {
-  db = {};
+let db = null;
+async function loadDb() {
+  let raw = null;
+  if (USE_KV) raw = await kv(['GET', KV_KEY]);
+  else raw = await readFile(DB_FILE, 'utf8').catch(() => null);
+  const d = raw ? JSON.parse(raw) : {};
+  d.users ??= {};
+  d.orders ??= [];
+  d.subscribers ??= [];
+  d.meta ??= {};
+  return d;
 }
-db.users ??= {};
-db.orders ??= [];
-db.subscribers ??= [];
 
 let writeChain = Promise.resolve();
 function saveDb() {
+  const snapshot = JSON.stringify(db);
   writeChain = writeChain
     .then(async () => {
+      if (USE_KV) return kv(['SET', KV_KEY, snapshot]);
+      await mkdir(DATA_DIR, { recursive: true });
       const tmp = DB_FILE + '.tmp';
-      await writeFile(tmp, JSON.stringify(db, null, 2));
+      await writeFile(tmp, snapshot);
       await rename(tmp, DB_FILE);
     })
     .catch((e) => console.error('DB write failed', e));
   return writeChain;
 }
 
+// Shared store → re-read on every request so all serverless instances agree.
+// Local file → load once and keep in memory.
+async function ensureDb() {
+  if (db && !USE_KV) return;
+  db = await loadDb();
+  let changed = false;
+  if (!process.env.SESSION_SECRET && !db.meta.sessionSecret) (db.meta.sessionSecret = crypto.randomBytes(32).toString('hex')), (changed = true);
+  if (!process.env.ADMIN_KEY && !db.meta.adminKey) {
+    db.meta.adminKey = crypto.randomBytes(9).toString('base64url');
+    console.log(`Generated admin key: ${db.meta.adminKey} (set ADMIN_KEY to choose your own)`);
+    changed = true;
+  }
+  if (changed) await saveDb();
+}
+const sessionSecret = () => process.env.SESSION_SECRET || db.meta.sessionSecret;
+const adminKey = () => process.env.ADMIN_KEY || db.meta.adminKey;
+
 // ---------- helpers ----------
 const b64u = (buf) => Buffer.from(buf).toString('base64url');
-const hmac = (data, key = SESSION_SECRET) => crypto.createHmac('sha256', key).update(data).digest();
+const hmac = (data, key = sessionSecret()) => crypto.createHmac('sha256', key).update(data).digest();
 function safeEqual(a, b) {
   const A = Buffer.from(String(a)), B = Buffer.from(String(b));
   return A.length === B.length && crypto.timingSafeEqual(A, B);
@@ -125,7 +152,7 @@ async function readJson(req) {
     if (size > 64 * 1024) throw new HttpError(413, 'Request too large');
     chunks.push(c);
   }
-  if (!chunks.length) return {};
+  if (!chunks.length) return req.body && typeof req.body === 'object' && !Buffer.isBuffer(req.body) ? req.body : {};
   try {
     return JSON.parse(Buffer.concat(chunks).toString());
   } catch {
@@ -133,9 +160,11 @@ async function readJson(req) {
   }
 }
 
+const clientIp = (req) => String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket?.remoteAddress || 'x';
+
 const buckets = new Map();
 function rateLimit(req, key, max, windowMs = 60_000) {
-  const ip = req.socket.remoteAddress || 'x';
+  const ip = clientIp(req);
   const k = key + ':' + ip;
   const now = Date.now();
   const b = buckets.get(k);
@@ -150,11 +179,11 @@ setInterval(() => {
 const EMAIL_RE = /^[^\s@<>]{1,64}@[^\s@<>]{1,255}\.[a-z]{2,}$/i;
 const str = (v, max = 120) => String(v ?? '').trim().slice(0, max);
 
-function upsertUser({ sub, email, name, picture, provider }) {
+async function upsertUser({ sub, email, name, picture, provider }) {
   const id = provider + ':' + sub;
   const existing = db.users[id];
   db.users[id] = { id, email, name: name || email.split('@')[0], picture: picture || '', provider, createdAt: existing?.createdAt || new Date().toISOString() };
-  saveDb();
+  await saveDb();
   return db.users[id];
 }
 const publicUser = (u) => u && { id: u.id, email: u.email, name: u.name, picture: u.picture, provider: u.provider };
@@ -317,7 +346,7 @@ route('POST', /^\/api\/auth\/google$/, async ({ req, res }) => {
   if (!GOOGLE_CLIENT_ID) throw new HttpError(400, 'Google Sign-In is not configured on this server.');
   const { credential } = await readJson(req);
   if (!credential) throw new HttpError(400, 'Missing Google credential.');
-  const user = upsertUser(await verifyGoogleCredential(credential));
+  const user = await upsertUser(await verifyGoogleCredential(credential));
   res.setHeader('Set-Cookie', sessionCookie(signSession({ uid: user.id }), 30 * 86400));
   return { user: publicUser(user) };
 });
@@ -328,7 +357,7 @@ route('POST', /^\/api\/auth\/demo$/, async ({ req, res }) => {
   const body = await readJson(req);
   const email = str(body.email, 200).toLowerCase();
   if (!/^[a-z0-9._%+-]+@gmail\.com$/.test(email)) throw new HttpError(400, 'Use a @gmail.com address.');
-  const user = upsertUser({ sub: email, email, name: str(body.name, 60) || email.split('@')[0], provider: 'demo' });
+  const user = await upsertUser({ sub: email, email, name: str(body.name, 60) || email.split('@')[0], provider: 'demo' });
   res.setHeader('Set-Cookie', sessionCookie(signSession({ uid: user.id }), 30 * 86400));
   return { user: publicUser(user) };
 });
@@ -430,7 +459,7 @@ route('POST', /^\/api\/subscribe$/, async ({ req }) => {
 });
 
 route('POST', /^\/api\/spin$/, ({ req }) => {
-  const key = (req.socket.remoteAddress || 'x') + ':' + new Date(Date.now() + 5.5 * 3600_000).toISOString().slice(0, 10);
+  const key = clientIp(req) + ':' + new Date(Date.now() + 5.5 * 3600_000).toISOString().slice(0, 10);
   const prev = spinLog.get(key) || 0;
   if (prev >= 3) throw new HttpError(429, 'The Agni Chakra rests until midnight. Come back tomorrow!');
   spinLog.set(key, prev + 1);
@@ -443,7 +472,7 @@ route('POST', /^\/api\/spin$/, ({ req }) => {
 
 // ----- admin -----
 function requireAdmin(req) {
-  if (!safeEqual(req.headers['x-admin-key'] || '', ADMIN_KEY)) throw new HttpError(401, 'Wrong admin key.');
+  if (!safeEqual(req.headers['x-admin-key'] || '', adminKey())) throw new HttpError(401, 'Wrong admin key.');
 }
 route('GET', /^\/api\/admin\/orders$/, ({ req }) => {
   requireAdmin(req);
@@ -516,15 +545,17 @@ const SECURITY_HEADERS = {
   'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
 };
 
-export const server = http.createServer(async (req, res) => {
+// Request handler shared by the local Node server and the Vercel function (api/index.js).
+export async function handler(req, res) {
   for (const [k, v] of Object.entries(SECURITY_HEADERS)) res.setHeader(k, v);
   const url = new URL(req.url, 'http://localhost');
   try {
     if (url.pathname.startsWith('/api/')) {
+      await ensureDb();
       // CSRF guard: state-changing API calls must come from our own pages (JSON + same origin)
       if (req.method === 'POST') {
         const origin = req.headers.origin;
-        if (origin && new URL(origin).host !== req.headers.host) throw new HttpError(403, 'Cross-site request blocked.');
+        if (origin && new URL(origin).host !== (req.headers['x-forwarded-host'] || req.headers.host)) throw new HttpError(403, 'Cross-site request blocked.');
         if (!String(req.headers['content-type'] || '').includes('application/json')) throw new HttpError(415, 'Send JSON.');
       }
       for (const r of routes) {
@@ -545,13 +576,16 @@ export const server = http.createServer(async (req, res) => {
     if (status === 500) console.error(e);
     if (!res.headersSent) send(res, status, { error: status === 500 ? 'Something broke on our side. Try again.' : e.message });
   }
-});
+}
+
+export const server = http.createServer(handler);
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  server.listen(PORT, () => {
+  ensureDb().then(() => server.listen(PORT, () => {
     console.log(`\n✦ Rare Collections by Sathish is live at http://localhost:${PORT}`);
     console.log(`   Google login: ${GOOGLE_CLIENT_ID ? 'ON' : 'not configured'} · demo login: ${ALLOW_DEMO_LOGIN ? 'ON' : 'off'}`);
     console.log(`   Payments: ${RAZORPAY_ON ? 'Razorpay' : 'demo pay (set RAZORPAY_KEY_ID/SECRET for real payments)'} + COD`);
-    console.log(`   Admin: http://localhost:${PORT}/admin  key: ${adminKey.generated ? ADMIN_KEY + '  (auto-generated, stored in data/.admin-key)' : '(from ADMIN_KEY)'}\n`);
-  });
+    console.log(`   Storage: ${STORAGE === 'redis' ? 'Redis' : DB_FILE}`);
+    console.log(`   Admin: http://localhost:${PORT}/admin  key: ${process.env.ADMIN_KEY ? '(from ADMIN_KEY)' : adminKey()}\n`);
+  }));
 }

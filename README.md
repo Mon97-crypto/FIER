@@ -53,6 +53,15 @@ npm test
 
 The admin key is printed in the console on first start and saved to `data/.admin-key`. Orders, users and subscribers are stored in `data/db.json`.
 
+## Deploy on Vercel
+
+The repo is Vercel-ready: `vercel.json` serves `public/` from the CDN and sends every `/api/*` request to one serverless function (`api/index.js`), which reuses the same handler as the local server.
+
+1. Import the GitHub repo in Vercel. Leave Framework set to "Other"; no build command is needed.
+2. **Add storage (required for real use):** go to Vercel → Storage / Marketplace → **Upstash for Redis**, then connect it to the project. This adds `KV_REST_API_URL` and `KV_REST_API_TOKEN` automatically, and orders, users and subscribers are kept there. Without it, the site still runs but stores data in each function's temporary `/tmp`, which is wiped regularly and isn't shared between instances.
+3. Add environment variables: `SESSION_SECRET` (a long random string) and `ADMIN_KEY` (your admin password). Add `GOOGLE_CLIENT_ID` and the Razorpay keys when ready.
+4. Redeploy. For Google Sign-In, add your `https://<your-domain>` to the OAuth client's Authorized JavaScript origins.
+
 ## Going live checklist
 
 1. **Google login**: create an OAuth Web client in Google Cloud Console, add your domain to *Authorized JavaScript origins*, and set `GOOGLE_CLIENT_ID`. Demo login turns off automatically.
