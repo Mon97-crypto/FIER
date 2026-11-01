@@ -6,24 +6,24 @@
   <meta name="robots" content="noindex" />
   <title>FIER Admin · Orders & Print Queue</title>
   <link rel="icon" href="/img/favicon.svg" />
-  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;700&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Unbounded:wght@500;700;900&family=Space+Grotesk:wght@400;500;700&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/styles.css" />
   <style>
     body { padding: 24px clamp(14px, 4vw, 48px); }
     .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
-    .top h1 { font-family: var(--display); font-weight: 400; font-size: 42px; margin: 0; letter-spacing: 2px; }
+    .top h1 { font-family: var(--display); font-weight: 900; font-size: 32px; text-transform: uppercase; margin: 0; letter-spacing: 2px; }
     .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 20px; }
-    .stat { padding: 16px; border-radius: 18px; background: var(--glass); border: 1px solid var(--line); }
+    .stat { padding: 16px; border-radius: 22px; background: var(--glass-bg); box-shadow: var(--glass-shadow); border: 1px solid var(--line); }
     .stat b { display: block; font-family: var(--display); font-size: 30px; font-weight: 400; }
     .stat span { color: var(--muted); font-size: 13px; }
     .tabs { display: flex; gap: 8px; margin-bottom: 14px; }
     table { width: 100%; border-collapse: collapse; font-size: 14px; }
     th, td { text-align: left; padding: 12px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
     th { color: var(--gold); font-size: 12px; letter-spacing: 1px; text-transform: uppercase; }
-    td select, td input { padding: 7px 9px; border-radius: 10px; font-size: 13px; background: #1a0d2d; color: var(--text); border: 1px solid var(--line); }
+    td select, td input { padding: 7px 9px; border-radius: 10px; font-size: 13px; background: #fff; color: var(--ink); border: 1px solid var(--line); }
     td input { width: 130px; }
     .items a { color: var(--teal); font-size: 12px; }
-    .wrap { overflow-x: auto; background: rgba(255,255,255,.03); border: 1px solid var(--line); border-radius: 20px; padding: 6px 10px; }
+    .wrap { overflow-x: auto; background: rgba(255,255,255,.55); border: 1px solid var(--line); border-radius: 20px; padding: 6px 10px; }
     .login { max-width: 380px; margin: 12vh auto; display: grid; gap: 12px; text-align: center; }
     .designs { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
     .designs .d { padding: 12px; border-radius: 18px; background: var(--glass); border: 1px solid var(--line); text-align: center; }

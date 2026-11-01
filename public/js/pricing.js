@@ -25,14 +25,14 @@ export const COUPONS = {
 
 // The Agni Chakra (daily spin wheel). Order = wheel segments clockwise from the top.
 export const SPIN_REWARDS = [
-  { code: 'AGNI5', label: '5% OFF', color: '#ff7a00', weight: 22 },
-  { code: 'FREESHIP', label: 'FREE SHIP', color: '#7b2ff7', weight: 20 },
-  { code: 'SETU50', label: '₹50 OFF', color: '#00b3a4', weight: 18 },
-  { code: 'FEARNONE10', label: '10% OFF', color: '#ff2e88', weight: 14 },
-  { code: 'VANARA100', label: '₹100 OFF', color: '#e5a100', weight: 10 },
-  { code: 'AGNI15', label: '15% OFF', color: '#e0115f', weight: 7 },
-  { code: 'SETU50', label: '₹50 OFF', color: '#3d5afe', weight: 6 },
-  { code: 'BURNBRIGHT20', label: '20% OFF', color: '#14b866', weight: 3 },
+  { code: 'AGNI5', label: '5% OFF', color: '#E34234', weight: 22 },
+  { code: 'FREESHIP', label: 'FREE SHIP', color: '#D4FF3F', weight: 20 },
+  { code: 'SETU50', label: '₹50 OFF', color: '#CBB3E8', weight: 18 },
+  { code: 'FEARNONE10', label: '10% OFF', color: '#150e20', weight: 14 },
+  { code: 'VANARA100', label: '₹100 OFF', color: '#E34234', weight: 10 },
+  { code: 'AGNI15', label: '15% OFF', color: '#D4FF3F', weight: 7 },
+  { code: 'SETU50', label: '₹50 OFF', color: '#CBB3E8', weight: 6 },
+  { code: 'BURNBRIGHT20', label: '20% OFF', color: '#150e20', weight: 3 },
 ];
 
 export const TICKER = [

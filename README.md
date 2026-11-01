@@ -6,8 +6,9 @@ Storefront for **FIER Drop 01: the Ramayana: Part 1 collection**. It has eight o
 
 | Feature | Details |
 |---|---|
-| **3D tee carousel** | A 3D ring you can drag, swipe or flick, or move with the arrow keys and dot buttons. It autoplays until you touch it. Click the tee in front to open the configurator, which has a front/back 3D tee, a 360° spin and mouse tilt. |
-| **Configurator** | Men's regular or women's fitted cut (different silhouettes), per-design colours, S/M/L/XL, quantity, size guide. |
+| **3D hanger rack** | All 8 tees hang on glossy hangers from a chrome rail. Scrolling the page moves along the rail, and you can also drag, swipe, use the arrow buttons or the keyboard. Each tee swings with spring physics as it moves. **Hovering a tee** turns it to face you and opens a glass detail card (story, price, fit, size, colour, add to bag, customise); on mobile, tap a tee. |
+| **Studio** | A design picker, plus a 3D tee on its hanger that flips front/back or spins 360°. |
+| **Options** | Men's regular or women's fitted cut (different silhouettes), per-design colours, S/M/L/XL, quantity, size guide. |
 | **Gmail login** | Google Identity Services. The server checks the Google ID token and sets a signed, HttpOnly session cookie. Until `GOOGLE_CLIENT_ID` is set, a demo login that only accepts @gmail.com addresses keeps the prototype usable. |
 | **Checkout** | Address validation (Indian mobile number and PIN code), coupons, **Razorpay** (UPI/cards/netbanking, signature-verified) or **Cash on Delivery**. Without Razorpay keys, a simulated UPI payment is used instead. |
 | **Delivery tracking** | Confirmed → DTF Printing → Quality Check → Shipped → Out for Delivery → Delivered, shown as a timeline with an ETA, courier and AWB. Stages advance automatically for demos, or you set them by hand in the admin panel. |
@@ -15,6 +16,10 @@ Storefront for **FIER Drop 01: the Ramayana: Part 1 collection**. It has eight o
 | **Mailing list** | "Join the Vanara Sena" signup gives the FEARNONE10 code. Admins can export subscribers as CSV. |
 | **Founder story** | Sathish Kumar and the meaning of F.I.E.R. (Fearless · Intense · Eternal · Rising). |
 | **Admin** (`/admin`) | Revenue and print-queue stats, order list, status, courier and AWB updates, **downloadable DTF print files** (12″×14.4″ SVG), subscriber export. |
+
+## Look & feel
+
+A glossy lavender `#CBB3E8`, acid-lime `#D4FF3F` and vermilion `#E34234` palette: candy-gloss buttons, glass cards, chrome rail, stickers, floating glossy bubbles and Unbounded display type.
 
 ## Pricing (`public/js/pricing.js`, shared by the browser and the server)
 

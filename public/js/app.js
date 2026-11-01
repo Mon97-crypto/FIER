@@ -1,7 +1,7 @@
 import { PRODUCTS, SIZES, FITS, TEE_COLORS, SIZE_CHART, getProduct } from './catalog.js';
 import { BUNDLES, UNIT_PRICE, SPIN_REWARDS, TICKER, computeTotals, inr } from './pricing.js';
 import { teeSVG } from './tee.js';
-import { Carousel3D } from './carousel.js';
+import { HangerRack } from './rack.js';
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -71,21 +71,23 @@ function startCountdown(endsAt) {
   setInterval(tick, 1000);
 }
 
-// ---------------- embers (hero particles) ----------------
+// ---------------- glossy bubbles (hero particles) ----------------
 function embers() {
   const c = $('#embers');
   const ctx = c.getContext('2d');
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const dpr = devicePixelRatio || 1;
   let w, h, parts;
-  const cols = ['#ffd23f', '#ff7a00', '#ff2e88', '#ffe94d', '#7b2ff7'];
+  const cols = ['#D4FF3F', '#E34234', '#ffffff', '#a687d6', '#D4FF3F'];
+  const spawn = (anywhere) => ({
+    x: Math.random() * w, y: anywhere ? Math.random() * h : h + 40 * dpr, r: (Math.random() * 16 + 4) * dpr,
+    v: (Math.random() * 0.5 + 0.25) * dpr, s: Math.random() * 6.28, c: cols[(Math.random() * cols.length) | 0],
+  });
   const resize = () => {
-    w = c.width = c.offsetWidth * devicePixelRatio;
-    h = c.height = c.offsetHeight * devicePixelRatio;
-    parts = Array.from({ length: Math.min(110, Math.floor(w / 14)) }, spawn);
+    w = c.width = c.offsetWidth * dpr;
+    h = c.height = c.offsetHeight * dpr;
+    parts = Array.from({ length: Math.min(34, Math.floor(w / (40 * dpr))) }, () => spawn(true));
   };
-  function spawn() {
-    return { x: Math.random() * w, y: h + Math.random() * h, r: (Math.random() * 2.6 + 0.6) * devicePixelRatio, v: Math.random() * 1.2 + 0.4, s: Math.random() * 2 * Math.PI, c: cols[(Math.random() * cols.length) | 0] };
-  }
   resize();
   addEventListener('resize', resize);
   let visible = true;
@@ -93,17 +95,17 @@ function embers() {
   (function loop() {
     if (visible && !reduce) {
       ctx.clearRect(0, 0, w, h);
-      ctx.globalCompositeOperation = 'lighter';
       for (const p of parts) {
-        p.y -= p.v * devicePixelRatio;
-        p.s += 0.02;
-        p.x += Math.sin(p.s) * 0.6;
-        if (p.y < -10) Object.assign(p, spawn(), { y: h + 10 });
-        const a = Math.min(1, p.y / h);
-        ctx.fillStyle = p.c;
-        ctx.globalAlpha = a * 0.85;
-        ctx.shadowBlur = 12;
-        ctx.shadowColor = p.c;
+        p.y -= p.v;
+        p.s += 0.012;
+        p.x += Math.sin(p.s) * 0.4 * dpr;
+        if (p.y < -p.r * 2) Object.assign(p, spawn(false));
+        const g = ctx.createRadialGradient(p.x - p.r * 0.35, p.y - p.r * 0.4, p.r * 0.05, p.x, p.y, p.r);
+        g.addColorStop(0, 'rgba(255,255,255,.95)');
+        g.addColorStop(0.3, p.c);
+        g.addColorStop(1, p.c + '55');
+        ctx.globalAlpha = 0.75;
+        ctx.fillStyle = g;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
         ctx.fill();
@@ -113,46 +115,146 @@ function embers() {
   })();
 }
 
-// ---------------- carousel ----------------
-let carousel;
-function buildCarousel() {
-  const cards = PRODUCTS.map((p, i) => {
+// ---------------- hanger rack + hover card ----------------
+let rack;
+const hc = { state: null, hideT: 0 };
+
+function rackItemHTML(p, color, fit) {
+  return `${teeSVG({ product: p, color, fit, hanger: true })}<span class="price-tag">${inr(UNIT_PRICE)}</span>${state.totd === p.id ? '<span class="totd-badge">⭐ Tee of the day</span>' : ''}`;
+}
+
+function buildRack() {
+  const items = PRODUCTS.map((p, i) => {
     const el = document.createElement('div');
-    el.className = 'card';
-    el.style.setProperty('--p1', p.palette[0]);
-    el.style.setProperty('--p2', p.palette[1]);
-    el.style.setProperty('--p3', p.palette[2]);
-    el.setAttribute('aria-label', `${p.name} — ${p.tagline}`);
-    el.innerHTML = `<span class="ctag">${esc(p.tag)}</span><span class="cnum">0${i + 1}</span>
-      ${teeSVG({ product: p, color: p.colors[0], fit: 'men' })}
-      <div class="card-info"><h4>${esc(p.name)}</h4><div class="meta"><span>${esc(p.tagline)}</span></div><div class="meta"><b>${inr(UNIT_PRICE)}</b></div></div>`;
+    el.className = 'hanger-item';
+    el.setAttribute('aria-label', `${p.name}: ${p.tagline}`);
+    el.innerHTML = `<div class="swing">${rackItemHTML(p, p.colors[0], 'men')}</div><span class="item-label">${String(i + 1).padStart(2, '0')} · ${esc(p.name)}</span>`;
     return el;
   });
-  const dots = $('#dots');
-  dots.innerHTML = PRODUCTS.map((p, i) => `<button role="tab" aria-label="${esc(p.name)}" data-i="${i}"></button>`).join('');
-  carousel = new Carousel3D($('#stage'), cards, {
-    onChange: (i) => {
-      $$('#dots button').forEach((b, j) => b.classList.toggle('active', i === j));
-      selectProduct(PRODUCTS[i].id);
+  rack = new HangerRack({
+    section: $('#drop'),
+    sticky: $('#rackSticky'),
+    stage: $('#rackStage'),
+    container: $('#rackItems'),
+    items,
+    onHover: (i) => showCard(i),
+    onLeave: (now) => (now ? hideCard() : hideCardSoon()),
+    onPick: (i) => openStudio(PRODUCTS[i].id),
+    onIndex: (i) => {
+      $('#rackCount').textContent = String(i + 1).padStart(2, '0');
+      $('#rackName').textContent = PRODUCTS[i].name;
     },
-    onPick: () => {
-      carousel.autoplay = false;
-      const cfg = $('#configurator');
-      cfg.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      cfg.classList.remove('flash-in');
-      void cfg.offsetWidth;
-      cfg.classList.add('flash-in');
+    onFrame: (r) => {
+      $('#rackBar').style.width = (r.pos / (r.n - 1)) * 100 + '%';
+      placeCard();
     },
   });
-  dots.addEventListener('click', (e) => {
-    const b = e.target.closest('button');
-    if (b) carousel.goTo(Number(b.dataset.i));
+  $('#rackPrev').onclick = () => rack.prev();
+  $('#rackNext').onclick = () => rack.next();
+
+  const card = $('#hoverCard');
+  card.addEventListener('pointerenter', () => {
+    clearTimeout(hc.hideT);
+    rack.cancelIntent();
   });
-  $('#prevBtn').onclick = () => carousel.prev();
-  $('#nextBtn').onclick = () => carousel.next();
-  // stop autoplay forever once the user takes control
-  $('#stage').addEventListener('pointerdown', () => (carousel.autoplay = false));
-  $('#configurator').addEventListener('pointerdown', () => (carousel.autoplay = false));
+  card.addEventListener('pointerleave', (e) => e.pointerType === 'mouse' && hideCardSoon());
+  card.addEventListener('click', (e) => {
+    const s = hc.state;
+    const t = e.target.closest('button');
+    if (!s || !t) return;
+    if (t.dataset.hfit) s.fit = t.dataset.hfit;
+    else if (t.dataset.hsize) s.size = t.dataset.hsize;
+    else if (t.dataset.hcolor) s.color = t.dataset.hcolor;
+    else if (t.id === 'hcAdd') {
+      addToCart({ productId: PRODUCTS[s.i].id, fit: s.fit, color: s.color, size: s.size, qty: 1 });
+      toast(`🔥 ${PRODUCTS[s.i].name} (${s.fit === 'women' ? 'W' : 'M'} · ${s.size}) added to bag`);
+      return;
+    } else if (t.id === 'hcStudio') {
+      Object.assign(state.sel, { fit: s.fit, size: s.size, color: s.color });
+      return openStudio(PRODUCTS[s.i].id, true);
+    } else return;
+    renderCard();
+    // dress the hanging tee in the chosen colour / cut
+    $('.swing', rack.items[s.i]).innerHTML = rackItemHTML(PRODUCTS[s.i], s.color, s.fit);
+  });
+  // tapping empty space on the rack closes the card (touch)
+  $('#rackStage').addEventListener('click', (e) => {
+    if (!e.target.closest('.hanger-item') && !e.target.closest('.hover-card')) hideCard();
+  });
+}
+
+function showCard(i) {
+  clearTimeout(hc.hideT);
+  const p = PRODUCTS[i];
+  if (hc.state?.i !== i) hc.state = { i, fit: 'men', size: 'M', color: p.colors[0] };
+  renderCard();
+  const card = $('#hoverCard');
+  card.hidden = false;
+  placeCard();
+  requestAnimationFrame(() => card.classList.add('show'));
+}
+function hideCardSoon() {
+  clearTimeout(hc.hideT);
+  hc.hideT = setTimeout(hideCard, 260);
+}
+function hideCard() {
+  clearTimeout(hc.hideT);
+  const card = $('#hoverCard');
+  card.classList.remove('show');
+  if (rack) rack.hot = -1;
+  setTimeout(() => !card.classList.contains('show') && (card.hidden = true), 250);
+}
+function renderCard() {
+  const s = hc.state, p = PRODUCTS[s.i];
+  $('#hoverCard').innerHTML = `
+    <div class="hc-top"><span class="hc-tag">${esc(p.tag)}</span><span class="hc-num">${String(s.i + 1).padStart(2, '0')} / ${String(PRODUCTS.length).padStart(2, '0')}</span></div>
+    <h3>${esc(p.name)}</h3><p class="hc-deva">${esc(p.deva)}</p><p class="hc-tagline">${esc(p.tagline)}</p>
+    <p class="hc-story">${esc(p.story)}</p>
+    <div class="hc-row"><span class="hc-price">${inr(UNIT_PRICE)}</span><span class="hc-bundle">2 for ₹899 · 4 for ₹1,599</span></div>
+    <div class="hc-opts">
+      <div class="mini" role="radiogroup" aria-label="Fit">${Object.entries(FITS).map(([k, f]) => `<button role="radio" aria-checked="${s.fit === k}" data-hfit="${k}">${f.label}</button>`).join('')}</div>
+      <div class="mini" role="radiogroup" aria-label="Size">${SIZES.map((z) => `<button role="radio" aria-checked="${s.size === z}" data-hsize="${z}">${z}</button>`).join('')}</div>
+    </div>
+    <div class="hc-colors">${p.colors.map((k) => `<button role="radio" aria-checked="${s.color === k}" aria-label="${TEE_COLORS[k].name}" title="${TEE_COLORS[k].name}" data-hcolor="${k}" style="--sw:${TEE_COLORS[k].hex}"></button>`).join('')}<span>${TEE_COLORS[s.color].name}</span></div>
+    <div class="hc-actions"><button class="btn primary grow" id="hcAdd">Add to bag</button><button class="btn dark" id="hcStudio">Customise →</button></div>`;
+}
+function placeCard() {
+  const card = $('#hoverCard');
+  if (card.hidden || !rack || !hc.state || innerWidth <= 700) return;
+  const tee = $('.tee', rack.items[hc.state.i]);
+  const st = $('#rackStage').getBoundingClientRect();
+  const r = tee.getBoundingClientRect();
+  const cw = card.offsetWidth, ch = card.offsetHeight;
+  let left = r.right - st.left - r.width * 0.12;
+  if (left + cw > st.width - 12) left = r.left - st.left - cw + r.width * 0.12;
+  left = Math.max(12, Math.min(left, st.width - cw - 12));
+  const top = Math.max(12, Math.min(r.top - st.top + r.height * 0.22, st.height - ch - 12));
+  card.style.left = left + 'px';
+  card.style.top = top + 'px';
+}
+
+function openStudio(id, fromCard) {
+  hideCard();
+  if (!fromCard) state.sel.color = getProduct(id).colors.includes(state.sel.color) ? state.sel.color : getProduct(id).colors[0];
+  selectProduct(id);
+  const cfg = $('#configurator');
+  cfg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  cfg.classList.remove('flash-in');
+  void cfg.offsetWidth;
+  cfg.classList.add('flash-in');
+}
+
+function buildPicker() {
+  $('#designPicker').innerHTML = PRODUCTS.map((p) => `<button role="tab" data-pick="${p.id}" aria-selected="false">${teeSVG({ product: p, color: p.colors[0] })}${esc(p.name)}</button>`).join('');
+  $('#designPicker').onclick = (e) => {
+    const b = e.target.closest('[data-pick]');
+    if (b) selectProduct(b.dataset.pick);
+  };
+}
+
+function heroTees() {
+  $('#heroTeeL').innerHTML = teeSVG({ product: getProduct('lanka-dahan'), color: 'black', hanger: true });
+  $('#heroTeeR').innerHTML = teeSVG({ product: getProduct('suryavanshi'), color: 'black', fit: 'women', hanger: true });
 }
 
 // ---------------- configurator ----------------
@@ -163,10 +265,7 @@ function selectProduct(id) {
     s.productId = id;
     if (!p.colors.includes(s.color)) s.color = p.colors[0];
   }
-  const root = document.documentElement.style;
-  root.setProperty('--c1', p.palette[0]);
-  root.setProperty('--c2', p.palette[1]);
-  root.setProperty('--c3', p.palette[2]);
+  $$('#designPicker [data-pick]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.pick === id)));
   $('#pTag').textContent = p.tag;
   $('#pTotd').hidden = state.totd !== p.id;
   $('#pName').textContent = p.name;
@@ -178,8 +277,8 @@ function selectProduct(id) {
 
 function renderTee() {
   const p = getProduct(state.sel.productId);
-  $('#teeFront').innerHTML = teeSVG({ product: p, color: state.sel.color, fit: state.sel.fit, view: 'front' });
-  $('#teeBack').innerHTML = teeSVG({ product: p, color: state.sel.color, fit: state.sel.fit, view: 'back' });
+  $('#teeFront').innerHTML = teeSVG({ product: p, color: state.sel.color, fit: state.sel.fit, view: 'front', hanger: true });
+  $('#teeBack').innerHTML = teeSVG({ product: p, color: state.sel.color, fit: state.sel.fit, view: 'back', hanger: true });
 }
 
 function renderOptions() {
@@ -343,13 +442,13 @@ function renderBundles() {
   $('#bundleGrid').innerHTML = BUNDLES.map((b) => {
     const mrp = b.qty * UNIT_PRICE;
     const hot = b.qty === 4;
-    return `<div class="bundle ${hot ? 'hot' : ''}" style="--bg-g:linear-gradient(160deg, ${['#ff7a00', '#ff2e88', '#7b2ff7', '#00e5c7'][b.qty - 1]}, transparent)">
-      ${hot ? '<span class="ribbon">BEST VALUE</span>' : b.qty === 2 ? '<span class="ribbon" style="background:#7b2ff7">POPULAR</span>' : ''}
+    return `<div class="bundle ${hot ? 'hot' : b.qty === 2 ? 'dark' : ''}">
+      ${hot ? '<span class="ribbon">BEST VALUE</span>' : b.qty === 2 ? '<span class="ribbon">POPULAR</span>' : ''}
       <div class="em">${b.emoji}</div><h3>${b.name}</h3>
       <div class="bp">${inr(b.price)}${b.qty > 1 ? `<s>${inr(mrp)}</s>` : ''}</div>
       <div class="per">${b.qty > 1 ? `${inr(b.price / b.qty)}/tee · save ${inr(mrp - b.price)}` : 'per tee'}</div>
       <p>${esc(b.blurb)}</p>
-      <a class="btn ${hot ? 'primary' : 'ghost'} full" href="#drop">Build your ${b.name}</a>
+      <a class="btn ${hot ? 'lime' : b.qty === 2 ? 'primary' : 'dark'} full" href="#drop">Build your ${b.name}</a>
     </div>`;
   }).join('');
 }
@@ -361,15 +460,16 @@ function buildWheel() {
     const a = ((deg - 90) * Math.PI) / 180;
     return [Math.cos(a) * r, Math.sin(a) * r].map((v) => v.toFixed(2)).join(',');
   };
-  let svg = `<circle r="${R + 8}" fill="#1a0b2b" stroke="#ffd23f" stroke-width="4"/>`;
+  const ink = (hex) => (['#D4FF3F', '#CBB3E8'].includes(hex) ? '#150e20' : '#fff');
+  let svg = `<circle r="${R + 8}" fill="#150e20" stroke="#D4FF3F" stroke-width="4"/>`;
   SPIN_REWARDS.forEach((r, i) => {
     const a0 = i * seg, a1 = a0 + seg, mid = a0 + seg / 2;
-    svg += `<path d="M0,0 L${pt(a0, R)} A${R},${R} 0 0 1 ${pt(a1, R)}Z" fill="${r.color}" stroke="#1a0b2b" stroke-width="2"/>`;
-    svg += `<text transform="rotate(${mid}) translate(0 ${-R + 26})" text-anchor="middle" font-family="Anton" font-size="19" fill="#fff" letter-spacing="1">${esc(r.label.split(' ')[0])}</text>`;
-    svg += `<text transform="rotate(${mid}) translate(0 ${-R + 46})" text-anchor="middle" font-family="Space Grotesk" font-weight="700" font-size="11" fill="#fff" opacity=".9">${esc(r.label.split(' ').slice(1).join(' '))}</text>`;
+    svg += `<path d="M0,0 L${pt(a0, R)} A${R},${R} 0 0 1 ${pt(a1, R)}Z" fill="${r.color}" stroke="#150e20" stroke-width="2"/>`;
+    svg += `<text transform="rotate(${mid}) translate(0 ${-R + 26})" text-anchor="middle" font-family="Unbounded, Anton" font-weight="900" font-size="17" fill="${ink(r.color)}">${esc(r.label.split(' ')[0])}</text>`;
+    svg += `<text transform="rotate(${mid}) translate(0 ${-R + 46})" text-anchor="middle" font-family="Space Grotesk" font-weight="700" font-size="11" fill="${ink(r.color)}" opacity=".9">${esc(r.label.split(' ').slice(1).join(' '))}</text>`;
   });
-  for (let i = 0; i < n; i++) svg += `<circle cx="${pt(i * seg, R + 1).split(',')[0]}" cy="${pt(i * seg, R + 1).split(',')[1]}" r="4" fill="#ffd23f"/>`;
-  svg += `<circle r="34" fill="#1a0b2b" stroke="#ffd23f" stroke-width="4"/><text y="9" text-anchor="middle" font-family="Anton" font-size="24" fill="#ffd23f">FIER</text>`;
+  for (let i = 0; i < n; i++) svg += `<circle cx="${pt(i * seg, R + 1).split(',')[0]}" cy="${pt(i * seg, R + 1).split(',')[1]}" r="4" fill="#D4FF3F"/>`;
+  svg += `<circle r="36" fill="#150e20" stroke="#D4FF3F" stroke-width="4"/><text y="7" text-anchor="middle" font-family="Unbounded, Anton" font-weight="900" font-size="18" fill="#D4FF3F">FIER</text>`;
   $('#wheel').innerHTML = svg;
 
   let rotation = 0;
@@ -650,7 +750,7 @@ function orderDone(order) {
 function confetti(canvas) {
   const ctx = canvas.getContext('2d');
   const w = (canvas.width = canvas.offsetWidth), h = (canvas.height = canvas.offsetHeight);
-  const cols = ['#ffd23f', '#ff7a00', '#ff2e88', '#7b2ff7', '#00e5c7'];
+  const cols = ['#D4FF3F', '#E34234', '#CBB3E8', '#150e20', '#ffffff'];
   const ps = Array.from({ length: 140 }, () => ({ x: w / 2, y: h / 3, vx: (Math.random() - 0.5) * 12, vy: Math.random() * -10 - 3, r: Math.random() * 6 + 3, c: cols[(Math.random() * 5) | 0], a: Math.random() * 6 }));
   let frames = 0;
   (function f() {
@@ -821,7 +921,8 @@ async function boot() {
   $('#year').textContent = new Date().getFullYear();
   renderTicker(TICKER);
   embers();
-  buildCarousel();
+  heroTees();
+  buildPicker();
   bindConfigurator();
   bindCart();
   bindAuth();
@@ -830,6 +931,7 @@ async function boot() {
   bindJoin();
   bindModals();
   renderBundles();
+  buildRack();
   buildWheel();
   revealOnScroll();
   renderCart();
@@ -843,6 +945,8 @@ async function boot() {
     startCountdown(offers.value.flash.endsAt);
     state.totd = offers.value.teeOfTheDay;
     selectProduct(state.sel.productId);
+    const ti = PRODUCTS.findIndex((p) => p.id === state.totd);
+    if (ti >= 0) $('.swing', rack.items[ti]).innerHTML = rackItemHTML(PRODUCTS[ti], PRODUCTS[ti].colors[0], 'men');
   } else {
     const d = new Date();
     d.setHours(24, 0, 0, 0);

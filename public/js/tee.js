@@ -44,7 +44,19 @@ function backArt(u, ink, product) {
 <text x="200" y="470" text-anchor="middle" font-family="'Space Grotesk', sans-serif" font-size="11" letter-spacing="3" fill="${ink}" opacity=".7">DROP 01 · RAMAYANA PART 1</text>`;
 }
 
-export function teeSVG({ product, color, fit = 'men', view = 'front', className = '' }) {
+function hangerSVG(u, back) {
+  return `<defs>
+<linearGradient id="${u}chr" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8d8a99"/><stop offset=".35" stop-color="#ffffff"/><stop offset=".55" stop-color="#b9b6c6"/><stop offset=".8" stop-color="#f6f5fa"/><stop offset="1" stop-color="#7d7a8a"/></linearGradient>
+<linearGradient id="${u}hg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff8a7d"/><stop offset=".45" stop-color="#E34234"/><stop offset=".55" stop-color="#c22d20"/><stop offset="1" stop-color="#E34234"/></linearGradient></defs>
+<g${back ? ' transform="translate(500 0) scale(-1 1)"' : ''}>
+<path d="M250,-8 L250,-40 C250,-64 286,-68 288,-94 C290,-118 258,-124 246,-108" fill="none" stroke="#3b3548" stroke-width="9" stroke-linecap="round" opacity=".35" transform="translate(3 3)"/>
+<path d="M250,-8 L250,-40 C250,-64 286,-68 288,-94 C290,-118 258,-124 246,-108" fill="none" stroke="url(#${u}chr)" stroke-width="7" stroke-linecap="round"/></g>
+<path d="M250,-10 L104,58 Q86,68 102,78 L398,78 Q414,68 396,58 Z" fill="url(#${u}hg)"/>
+<path d="M250,-6 L116,58" stroke="#fff" stroke-opacity=".7" stroke-width="3" stroke-linecap="round"/>
+<rect x="238" y="-18" width="24" height="18" rx="6" fill="url(#${u}hg)"/>`;
+}
+
+export function teeSVG({ product, color, fit = 'men', view = 'front', className = '', hanger = false }) {
   const u = `t${++uid}_`;
   const s = SHAPES[fit] || SHAPES.men;
   const c = TEE_COLORS[color] || TEE_COLORS[product.colors[0]];
@@ -53,13 +65,13 @@ export function teeSVG({ product, color, fit = 'men', view = 'front', className 
   const pa = front ? s.print : s.back;
   const art = front ? product.art(u + 'a', ink) : backArt(u + 'b', ink, product);
   const lineCol = c.dark ? 'rgba(0,0,0,.45)' : 'rgba(0,0,0,.14)';
-  return `<svg class="tee ${className}" viewBox="0 0 500 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${product.name} tee, ${c.name}, ${fit === 'women' ? "women's" : "men's"} ${view}">
+  return `<svg class="tee ${className}" viewBox="${hanger ? '0 -130 500 690' : '0 0 500 560'}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${product.name} tee, ${c.name}, ${fit === 'women' ? "women's" : "men's"} ${view}">
 <defs>
 <clipPath id="${u}clip"><path d="${s.body}"/></clipPath>
 <linearGradient id="${u}h" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".38"/><stop offset=".2" stop-color="#000" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".07"/><stop offset=".8" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".38"/></linearGradient>
 <linearGradient id="${u}v" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".1"/><stop offset=".25" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".22"/></linearGradient>
 </defs>
-<ellipse cx="250" cy="545" rx="170" ry="12" fill="#000" opacity=".28"/>
+${hanger ? hangerSVG(u + 'h', !front) : '<ellipse cx="250" cy="545" rx="170" ry="12" fill="#000" opacity=".28"/>'}
 <path d="${s.body}" fill="${c.hex}"/>
 <path d="${front ? s.neckFront : s.neckBack}" fill="${shade(c.hex, -0.12)}"/>
 <g clip-path="url(#${u}clip)">

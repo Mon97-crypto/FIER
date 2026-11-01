@@ -5,17 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>FIER — Fear None. Burn Bright. | Ramayana: Part 1 Drop</title>
   <meta name="description" content="FIER Drop 01: eight epic Ramayana: Part 1 inspired DTF-printed tees. ₹499 each, S–XL, men & women. Bundle up and save." />
-  <meta name="theme-color" content="#0b0614" />
+  <meta name="theme-color" content="#CBB3E8" />
   <meta property="og:title" content="FIER — Fear None. Burn Bright." />
   <meta property="og:description" content="Ramayana: Part 1 drop · 8 DTF tees · ₹499 · Bundles from ₹399/tee" />
   <link rel="icon" href="/img/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;700&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Unbounded:wght@500;700;900&family=Space+Grotesk:wght@400;500;700&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/styles.css" />
 </head>
 <body>
   <div class="aurora" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+  <div class="grain" aria-hidden="true"></div>
 
   <div class="ticker" aria-label="Current offers"><div class="ticker-track" id="tickerTrack"></div></div>
 
@@ -25,7 +26,8 @@
       <span>FIER</span>
     </a>
     <nav class="links" aria-label="Main">
-      <a href="#drop">The Drop</a>
+      <a href="#drop">The Rack</a>
+      <a href="#studio">Studio</a>
       <a href="#bundles">Bundles</a>
       <a href="#chakra">Agni Chakra</a>
       <a href="#story">Our Story</a>
@@ -44,15 +46,17 @@
     <!-- HERO -->
     <section class="hero" id="top">
       <canvas id="embers" aria-hidden="true"></canvas>
+      <div class="hero-tee left" id="heroTeeL" aria-hidden="true"></div>
+      <div class="hero-tee right" id="heroTeeR" aria-hidden="true"></div>
       <div class="hero-inner">
-        <p class="eyebrow">DROP 01 · RAMAYANA: PART 1 COLLECTION</p>
+        <p class="pill-eyebrow"><span class="dot-live"></span> DROP 01 · RAMAYANA: PART 1 · LIVE NOW</p>
         <h1 class="hero-title">
           <span class="line">FEAR NONE.</span>
-          <span class="line grad">BURN BRIGHT.</span>
+          <span class="line gloss-red">BURN BRIGHT.</span>
         </h1>
-        <p class="hero-sub">Eight epic designs. DTF printed to outlive the hype. <b>₹499</b> a tee — or stack a bundle and pay as little as <b>₹399</b>.</p>
+        <p class="hero-sub">8 epic tees. DTF printed. Glossy, loud and built to go viral. <b>₹499</b> each, or bundle down to <b>₹399</b>.</p>
         <div class="hero-cta">
-          <a class="btn primary lg" href="#drop">Enter the Drop 🔥</a>
+          <a class="btn primary lg" href="#drop">Browse the rack 🔥</a>
           <a class="btn ghost lg" href="#story">Meet the founder</a>
         </div>
         <div class="flash" id="flash">
@@ -65,28 +69,50 @@
         <ul class="hero-stats">
           <li><b>8</b><span>epic designs</span></li>
           <li><b>S–XL</b><span>men &amp; women</span></li>
-          <li><b>DTF</b><span>vivid, stretchy, washable</span></li>
+          <li><b>DTF</b><span>vivid · stretchy</span></li>
           <li><b>₹499</b><span>every tee</span></li>
         </ul>
       </div>
+      <div class="sticker s1" aria-hidden="true">₹499<small>ANY TEE</small></div>
+      <svg class="sticker-ring" viewBox="0 0 200 200" aria-hidden="true"><defs><path id="ring" d="M100,100 m-78,0 a78,78 0 1,1 156,0 a78,78 0 1,1 -156,0"/></defs><circle cx="100" cy="100" r="98" fill="#D4FF3F"/><text font-family="Unbounded, sans-serif" font-weight="700" font-size="15.5" letter-spacing="3.2" fill="#150e20"><textPath href="#ring">FEAR NONE ✦ BURN BRIGHT ✦ DROP 01 ✦ </textPath></text><text x="100" y="114" text-anchor="middle" font-size="40">🔥</text></svg>
     </section>
 
-    <!-- THE DROP / CAROUSEL -->
-    <section class="drop" id="drop">
+    <!-- HANGER RACK -->
+    <section class="rack-section" id="drop" style="--n: 8">
+      <div class="rack-sticky" id="rackSticky">
+        <div class="rack-head">
+          <div>
+            <p class="eyebrow">THE RACK · SCROLL TO BROWSE</p>
+            <h2>The <span class="gloss-red">Ramayana: Part 1</span> drop</h2>
+          </div>
+          <p class="rack-hint">Scroll, swipe or drag along the rail. <b>Hover a tee</b> (or tap it on mobile) to see its details.</p>
+        </div>
+        <div class="rack-stage" id="rackStage" tabindex="0" aria-label="Clothing rack with 8 tees. Use left and right arrow keys to browse.">
+          <div class="spot" aria-hidden="true"></div>
+          <div class="rail" aria-hidden="true"><span class="post l"></span><span class="post r"></span></div>
+          <div class="rack-items" id="rackItems"></div>
+          <div class="rack-floor" aria-hidden="true"></div>
+          <div class="hover-card" id="hoverCard" hidden></div>
+        </div>
+        <div class="rack-ui">
+          <button class="round-btn" id="rackPrev" aria-label="Previous tee">←</button>
+          <div class="rack-progress">
+            <div class="rack-now"><b id="rackCount">01</b><span>/ 08</span><em id="rackName">Kodanda</em></div>
+            <div class="rack-bar"><span id="rackBar"></span></div>
+          </div>
+          <button class="round-btn" id="rackNext" aria-label="Next tee">→</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- STUDIO / CONFIGURATOR -->
+    <section class="studio" id="studio">
       <div class="section-head">
-        <p class="eyebrow">CHOOSE YOUR WARRIOR</p>
-        <h2>The <span class="grad">Ramayana: Part 1</span> Drop</h2>
-        <p class="lede">Drag, swipe or use ← → to spin the ring. Tap the tee in front to make it yours.</p>
+        <p class="eyebrow">THE STUDIO</p>
+        <h2>Make it <span class="gloss-red">yours</span></h2>
+        <p class="lede">Pick a design, choose a cut, colour and size, then spin it in 3D.</p>
       </div>
-
-      <div class="carousel" id="carousel">
-        <button class="car-arrow prev" id="prevBtn" aria-label="Previous design">‹</button>
-        <div class="stage" id="stage" tabindex="0" role="listbox" aria-label="T-shirt designs"></div>
-        <button class="car-arrow next" id="nextBtn" aria-label="Next design">›</button>
-        <div class="floor" aria-hidden="true"></div>
-      </div>
-      <div class="dots" id="dots" role="tablist" aria-label="Jump to design"></div>
-
+      <div class="design-picker" id="designPicker" role="tablist" aria-label="Choose design"></div>
       <div class="configurator" id="configurator">
         <div class="viewer">
           <div class="tee3d" id="tee3d">
@@ -112,7 +138,6 @@
             <span class="price">₹499</span>
             <span class="price-note">Any 2 for ₹899 · 4 for ₹1,599</span>
           </div>
-
           <div class="opt">
             <span class="opt-label">Fit</span>
             <div class="seg" id="fitOptions" role="radiogroup" aria-label="Fit"></div>
@@ -133,11 +158,11 @@
             </div>
             <button class="btn primary grow" id="addToCart">Add to cart · ₹499</button>
           </div>
-          <button class="btn ghost full" id="buyNow">Buy now ⚡</button>
+          <button class="btn lime full" id="buyNow">Buy now ⚡</button>
           <ul class="perks">
-            <li>🖨️ DTF print — vivid, soft-hand, crack-resistant</li>
+            <li>🖨️ DTF print: vivid, soft, crack-resistant</li>
             <li>🧵 Premium cotton tee</li>
-            <li>🚚 Free shipping ₹799+ · COD available</li>
+            <li>🚚 Free shipping ₹799+ · COD</li>
             <li>🔁 7-day size exchange</li>
           </ul>
         </div>
@@ -148,7 +173,7 @@
     <section class="bundles" id="bundles">
       <div class="section-head">
         <p class="eyebrow">ALWAYS-ON OFFERS</p>
-        <h2>Bundle up. <span class="grad">Burn brighter.</span></h2>
+        <h2>Bundle up. <span class="gloss-red">Burn brighter.</span></h2>
         <p class="lede">Mix any designs, fits, colours and sizes — bundle pricing applies automatically in your cart.</p>
       </div>
       <div class="bundle-grid" id="bundleGrid"></div>
@@ -156,10 +181,11 @@
     </section>
 
     <!-- SPIN WHEEL -->
-    <section class="chakra" id="chakra">
+    <section class="chakra-band" id="chakra">
+     <div class="chakra">
       <div class="chakra-copy">
         <p class="eyebrow">DAILY RITUAL</p>
-        <h2>Spin the <span class="grad">Agni Chakra</span></h2>
+        <h2>Spin the <span class="gloss-red">Agni Chakra</span></h2>
         <p class="lede">One spin a day. Every slice is a win — from free shipping to 20% off. Your code drops straight into the cart.</p>
         <button class="btn primary lg" id="spinBtn">Spin the Chakra 🎡</button>
         <p class="spin-result" id="spinResult" aria-live="polite"></p>
@@ -168,13 +194,14 @@
         <div class="pointer" aria-hidden="true"></div>
         <svg class="wheel" id="wheel" viewBox="-160 -160 320 320" aria-hidden="true"></svg>
       </div>
+     </div>
     </section>
 
     <!-- FOUNDER STORY -->
     <section class="story" id="story">
       <div class="section-head">
         <p class="eyebrow">THE MAN BEHIND THE FIRE</p>
-        <h2>Sathish Kumar &amp; the <span class="grad">vow of FIER</span></h2>
+        <h2>Sathish Kumar &amp; the <span class="gloss-red">vow of FIER</span></h2>
       </div>
       <div class="story-grid">
         <aside class="founder-card">
@@ -208,7 +235,7 @@
             <span class="ch-num">04</span>
             <h4>The Blaze</h4>
             <p><b>FIER</b> is that wall turned into a brand. Not “fear” misspelled — fear <em>rewritten</em>: Fearless, Intense, Eternal, Rising. Drop 01 returns to where it all began — the Ramayana — because the oldest story we know is still the boldest: an exiled prince, an army of believers and a bridge across the impossible.</p>
-            <p class="sign">Wear it like a vow. <span class="grad">Fear none. Burn bright.</span><br/>— Sathish</p>
+            <p class="sign">Wear it like a vow. <span class="gloss-red">Fear none. Burn bright.</span><br/>— Sathish</p>
           </article>
         </div>
       </div>
@@ -218,7 +245,7 @@
     <section class="track" id="track">
       <div class="section-head">
         <p class="eyebrow">WHERE’S MY TEE?</p>
-        <h2>Track your <span class="grad">delivery</span></h2>
+        <h2>Track your <span class="gloss-red">delivery</span></h2>
         <p class="lede">Enter your order ID and delivery PIN code — or log in to see all your orders.</p>
       </div>
       <form class="track-form" id="trackForm">
@@ -235,13 +262,13 @@
       <div class="join-card">
         <div>
           <p class="eyebrow">JOIN THE VANARA SENA</p>
-          <h2>Get drops before they <span class="grad">sell out</span>.</h2>
+          <h2>Get drops before they <span class="gloss-red">sell out</span>.</h2>
           <p class="lede">New drops, secret codes and behind-the-print stories. Join now and get <b>10% off</b> your first order.</p>
         </div>
         <form class="join-form" id="joinForm">
           <input type="text" name="name" placeholder="Your name" maxlength="60" />
           <input type="email" name="email" placeholder="you@gmail.com" required />
-          <button class="btn primary" type="submit">Join the Sena 🐒</button>
+          <button class="btn dark" type="submit">Join the Sena 🐒</button>
           <p class="join-msg" id="joinMsg" aria-live="polite"></p>
         </form>
       </div>
