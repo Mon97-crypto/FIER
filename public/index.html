@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FIER — Fear None. Burn Bright. | Ramayana: Part 1 Drop</title>
+  <meta name="description" content="FIER Drop 01: eight epic Ramayana: Part 1 inspired DTF-printed tees. ₹499 each, S–XL, men & women. Bundle up and save." />
+  <meta name="theme-color" content="#0b0614" />
+  <meta property="og:title" content="FIER — Fear None. Burn Bright." />
+  <meta property="og:description" content="Ramayana: Part 1 drop · 8 DTF tees · ₹499 · Bundles from ₹399/tee" />
+  <link rel="icon" href="/img/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;700&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <div class="aurora" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+
+  <div class="ticker" aria-label="Current offers"><div class="ticker-track" id="tickerTrack"></div></div>
+
+  <header class="nav" id="nav">
+    <a class="logo" href="#top" aria-label="FIER home">
+      <svg viewBox="0 0 40 48" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ff2e88"/><stop offset=".5" stop-color="#ff7a00"/><stop offset="1" stop-color="#ffd23f"/></linearGradient></defs><path d="M20 2C16 14 6 18 6 31a14 14 0 0 0 28 0c0-6-3-10-6-13 0 5-2 8-5 9 2-8-1-17-3-25z" fill="url(#lg)"/></svg>
+      <span>FIER</span>
+    </a>
+    <nav class="links" aria-label="Main">
+      <a href="#drop">The Drop</a>
+      <a href="#bundles">Bundles</a>
+      <a href="#chakra">Agni Chakra</a>
+      <a href="#story">Our Story</a>
+      <a href="#track">Track</a>
+    </nav>
+    <div class="nav-actions">
+      <button class="btn ghost sm" id="accountBtn">Login with Gmail</button>
+      <button class="cart-btn" id="cartBtn" aria-label="Open cart">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7V6a5 5 0 0 1 10 0v1h3l-1.5 14h-15L2 7h5zm2 0h6V6a3 3 0 0 0-6 0v1z" fill="currentColor"/></svg>
+        <span class="count" id="cartCount">0</span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero" id="top">
+      <canvas id="embers" aria-hidden="true"></canvas>
+      <div class="hero-inner">
+        <p class="eyebrow">DROP 01 · RAMAYANA: PART 1 COLLECTION</p>
+        <h1 class="hero-title">
+          <span class="line">FEAR NONE.</span>
+          <span class="line grad">BURN BRIGHT.</span>
+        </h1>
+        <p class="hero-sub">Eight epic designs. DTF printed to outlive the hype. <b>₹499</b> a tee — or stack a bundle and pay as little as <b>₹399</b>.</p>
+        <div class="hero-cta">
+          <a class="btn primary lg" href="#drop">Enter the Drop 🔥</a>
+          <a class="btn ghost lg" href="#story">Meet the founder</a>
+        </div>
+        <div class="flash" id="flash">
+          <div>
+            <span class="flash-label">🌙 MIDNIGHT FLASH</span>
+            <span class="flash-text">Code <button class="code" data-copy="BURNBRIGHT20">BURNBRIGHT20</button> · 20% off ₹1,299+</span>
+          </div>
+          <div class="countdown" id="flashTimer" aria-live="off">--:--:--</div>
+        </div>
+        <ul class="hero-stats">
+          <li><b>8</b><span>epic designs</span></li>
+          <li><b>S–XL</b><span>men &amp; women</span></li>
+          <li><b>DTF</b><span>vivid, stretchy, washable</span></li>
+          <li><b>₹499</b><span>every tee</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- THE DROP / CAROUSEL -->
+    <section class="drop" id="drop">
+      <div class="section-head">
+        <p class="eyebrow">CHOOSE YOUR WARRIOR</p>
+        <h2>The <span class="grad">Ramayana: Part 1</span> Drop</h2>
+        <p class="lede">Drag, swipe or use ← → to spin the ring. Tap the tee in front to make it yours.</p>
+      </div>
+
+      <div class="carousel" id="carousel">
+        <button class="car-arrow prev" id="prevBtn" aria-label="Previous design">‹</button>
+        <div class="stage" id="stage" tabindex="0" role="listbox" aria-label="T-shirt designs"></div>
+        <button class="car-arrow next" id="nextBtn" aria-label="Next design">›</button>
+        <div class="floor" aria-hidden="true"></div>
+      </div>
+      <div class="dots" id="dots" role="tablist" aria-label="Jump to design"></div>
+
+      <div class="configurator" id="configurator">
+        <div class="viewer">
+          <div class="tee3d" id="tee3d">
+            <div class="face front" id="teeFront"></div>
+            <div class="face back" id="teeBack"></div>
+          </div>
+          <div class="view-toggle" role="group" aria-label="View">
+            <button class="chip active" data-view="front">Front</button>
+            <button class="chip" data-view="back">Back</button>
+            <button class="chip" id="spinTee" title="Spin 360°">↻ 360°</button>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-top">
+            <span class="tag" id="pTag">Bestseller</span>
+            <span class="totd" id="pTotd" hidden>⭐ Tee of the Day</span>
+          </div>
+          <h3 id="pName">Kodanda</h3>
+          <p class="deva" id="pDeva">कोदण्ड</p>
+          <p class="tagline" id="pTagline">One Arrow · One Promise</p>
+          <p class="pstory" id="pStory"></p>
+          <div class="price-row">
+            <span class="price">₹499</span>
+            <span class="price-note">Any 2 for ₹899 · 4 for ₹1,599</span>
+          </div>
+
+          <div class="opt">
+            <span class="opt-label">Fit</span>
+            <div class="seg" id="fitOptions" role="radiogroup" aria-label="Fit"></div>
+          </div>
+          <div class="opt">
+            <span class="opt-label">Colour <em id="colorName"></em></span>
+            <div class="swatches" id="colorOptions" role="radiogroup" aria-label="Colour"></div>
+          </div>
+          <div class="opt">
+            <span class="opt-label">Size <button class="link" id="sizeGuideBtn">Size guide</button></span>
+            <div class="sizes" id="sizeOptions" role="radiogroup" aria-label="Size"></div>
+          </div>
+          <div class="opt row">
+            <div class="qty" aria-label="Quantity">
+              <button id="qtyMinus" aria-label="Decrease">−</button>
+              <output id="qtyVal">1</output>
+              <button id="qtyPlus" aria-label="Increase">+</button>
+            </div>
+            <button class="btn primary grow" id="addToCart">Add to cart · ₹499</button>
+          </div>
+          <button class="btn ghost full" id="buyNow">Buy now ⚡</button>
+          <ul class="perks">
+            <li>🖨️ DTF print — vivid, soft-hand, crack-resistant</li>
+            <li>🧵 Premium cotton tee</li>
+            <li>🚚 Free shipping ₹799+ · COD available</li>
+            <li>🔁 7-day size exchange</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- BUNDLES -->
+    <section class="bundles" id="bundles">
+      <div class="section-head">
+        <p class="eyebrow">ALWAYS-ON OFFERS</p>
+        <h2>Bundle up. <span class="grad">Burn brighter.</span></h2>
+        <p class="lede">Mix any designs, fits, colours and sizes — bundle pricing applies automatically in your cart.</p>
+      </div>
+      <div class="bundle-grid" id="bundleGrid"></div>
+      <p class="bundle-foot">Every tee after the 4th is just <b>₹399</b>. Stack it with your Agni Chakra or Vanara Sena code.</p>
+    </section>
+
+    <!-- SPIN WHEEL -->
+    <section class="chakra" id="chakra">
+      <div class="chakra-copy">
+        <p class="eyebrow">DAILY RITUAL</p>
+        <h2>Spin the <span class="grad">Agni Chakra</span></h2>
+        <p class="lede">One spin a day. Every slice is a win — from free shipping to 20% off. Your code drops straight into the cart.</p>
+        <button class="btn primary lg" id="spinBtn">Spin the Chakra 🎡</button>
+        <p class="spin-result" id="spinResult" aria-live="polite"></p>
+      </div>
+      <div class="wheel-wrap">
+        <div class="pointer" aria-hidden="true"></div>
+        <svg class="wheel" id="wheel" viewBox="-160 -160 320 320" aria-hidden="true"></svg>
+      </div>
+    </section>
+
+    <!-- FOUNDER STORY -->
+    <section class="story" id="story">
+      <div class="section-head">
+        <p class="eyebrow">THE MAN BEHIND THE FIRE</p>
+        <h2>Sathish Kumar &amp; the <span class="grad">vow of FIER</span></h2>
+      </div>
+      <div class="story-grid">
+        <aside class="founder-card">
+          <div class="founder-portrait" aria-hidden="true">
+            <svg viewBox="0 0 200 200"><defs><linearGradient id="fp" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#ff2e88"/><stop offset=".5" stop-color="#ff7a00"/><stop offset="1" stop-color="#ffd23f"/></linearGradient></defs><circle cx="100" cy="100" r="96" fill="none" stroke="url(#fp)" stroke-width="6" stroke-dasharray="10 8"/><text x="100" y="122" text-anchor="middle" font-family="Anton" font-size="64" fill="url(#fp)">SK</text></svg>
+          </div>
+          <h3>Sathish Kumar</h3>
+          <p class="role">Founder &amp; Chief Fire Starter, FIER</p>
+          <blockquote>“Fear is just a flame you haven’t learned to hold yet. Hold it. Then burn brighter than anyone expected.”</blockquote>
+          <div class="acronym">
+            <div><b>F</b>earless</div><div><b>I</b>ntense</div><div><b>E</b>ternal</div><div><b>R</b>ising</div>
+          </div>
+        </aside>
+        <div class="chapters">
+          <article class="chapter">
+            <span class="ch-num">01</span>
+            <h4>The Spark</h4>
+            <p>Sathish grew up on stories told by lamplight. His favourite was always the same: a <em>vanara</em> standing at the edge of an endless ocean, told it was impossible — and leaping anyway. Everyone remembers that Hanuman crossed the sea. Sathish remembered the moment <em>before</em> the leap, when fear was loudest and he jumped regardless.</p>
+          </article>
+          <article class="chapter">
+            <span class="ch-num">02</span>
+            <h4>The Smoke</h4>
+            <p>He was told to play it safe. Get the steady job. Don’t gamble on something as “small” as T-shirts. The rejections stacked up like the stones of a bridge nobody believed would float. So he did what the Vanara Sena did: he picked up one stone at a time.</p>
+          </article>
+          <article class="chapter">
+            <span class="ch-num">03</span>
+            <h4>The Fire</h4>
+            <p>Nights became print runs. He learned DTF — direct-to-film — because it could carry the colours in his head: saffron skies, burning cities, ten-headed kings, rainbow-winged Jatayu. Every misprint was a lesson. Every tee that made it out the door carried two words he wrote on his wall: <b>fear none</b>.</p>
+          </article>
+          <article class="chapter">
+            <span class="ch-num">04</span>
+            <h4>The Blaze</h4>
+            <p><b>FIER</b> is that wall turned into a brand. Not “fear” misspelled — fear <em>rewritten</em>: Fearless, Intense, Eternal, Rising. Drop 01 returns to where it all began — the Ramayana — because the oldest story we know is still the boldest: an exiled prince, an army of believers and a bridge across the impossible.</p>
+            <p class="sign">Wear it like a vow. <span class="grad">Fear none. Burn bright.</span><br/>— Sathish</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRACKING -->
+    <section class="track" id="track">
+      <div class="section-head">
+        <p class="eyebrow">WHERE’S MY TEE?</p>
+        <h2>Track your <span class="grad">delivery</span></h2>
+        <p class="lede">Enter your order ID and delivery PIN code — or log in to see all your orders.</p>
+      </div>
+      <form class="track-form" id="trackForm">
+        <input name="order" placeholder="Order ID (e.g. FIER-261101-A1B2C3)" required autocomplete="off" />
+        <input name="pincode" placeholder="PIN code" inputmode="numeric" maxlength="6" />
+        <button class="btn primary" type="submit">Track</button>
+      </form>
+      <div class="my-orders-quick" id="myOrdersQuick"></div>
+      <div class="track-result" id="trackResult" aria-live="polite"></div>
+    </section>
+
+    <!-- NEWSLETTER -->
+    <section class="join" id="join">
+      <div class="join-card">
+        <div>
+          <p class="eyebrow">JOIN THE VANARA SENA</p>
+          <h2>Get drops before they <span class="grad">sell out</span>.</h2>
+          <p class="lede">New drops, secret codes and behind-the-print stories. Join now and get <b>10% off</b> your first order.</p>
+        </div>
+        <form class="join-form" id="joinForm">
+          <input type="text" name="name" placeholder="Your name" maxlength="60" />
+          <input type="email" name="email" placeholder="you@gmail.com" required />
+          <button class="btn primary" type="submit">Join the Sena 🐒</button>
+          <p class="join-msg" id="joinMsg" aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="foot-brand">
+      <span class="logo-text">FIER</span>
+      <p>Fear None. Burn Bright.</p>
+    </div>
+    <div class="foot-links">
+      <a href="#drop">Shop</a><a href="#bundles">Offers</a><a href="#track">Track order</a><a href="#story">About</a><a href="/admin">Admin</a>
+    </div>
+    <p class="disclaimer">Drop 01 designs are original FIER artwork inspired by the Ramayana epic. FIER is an independent brand and is not affiliated with or endorsed by the makers of the film “Ramayana: Part 1”.</p>
+    <p class="copy">© <span id="year"></span> FIER. Made with fire in India.</p>
+  </footer>
+
+  <!-- CART DRAWER -->
+  <div class="scrim" id="scrim" hidden></div>
+  <aside class="drawer" id="cartDrawer" aria-label="Cart" aria-hidden="true">
+    <div class="drawer-head">
+      <h3>Your Arsenal</h3>
+      <button class="x" data-close aria-label="Close cart">×</button>
+    </div>
+    <div class="bundle-meter" id="bundleMeter"></div>
+    <div class="cart-items" id="cartItems"></div>
+    <div class="cart-summary" id="cartSummary"></div>
+  </aside>
+
+  <!-- MODALS -->
+  <dialog class="modal" id="loginModal">
+    <button class="x" data-close aria-label="Close">×</button>
+    <h3>Join the fire 🔥</h3>
+    <p class="muted">Log in with your Gmail to check out, save your orders and track deliveries.</p>
+    <div id="googleBtn" class="google-btn"></div>
+    <form id="demoLogin" class="demo-login" hidden>
+      <p class="note">Prototype mode — Google Sign-In isn’t configured on this server yet, so enter your Gmail to continue.</p>
+      <input name="name" placeholder="Your name" maxlength="60" required />
+      <input name="email" type="email" placeholder="you@gmail.com" required />
+      <button class="btn primary full" type="submit">Continue with Gmail</button>
+    </form>
+    <p class="err" id="loginErr"></p>
+  </dialog>
+
+  <dialog class="modal wide" id="checkoutModal">
+    <button class="x" data-close aria-label="Close">×</button>
+    <h3>Checkout</h3>
+    <form id="checkoutForm" class="checkout">
+      <div class="co-left">
+        <h4>Delivery address</h4>
+        <div class="grid2">
+          <input name="name" placeholder="Full name" required maxlength="80" autocomplete="name" />
+          <input name="phone" placeholder="Mobile (10 digits)" required inputmode="tel" maxlength="13" autocomplete="tel" />
+        </div>
+        <input name="line1" placeholder="House no, street, area" required maxlength="160" autocomplete="address-line1" />
+        <input name="line2" placeholder="Landmark (optional)" maxlength="160" autocomplete="address-line2" />
+        <div class="grid3">
+          <input name="city" placeholder="City" required maxlength="60" autocomplete="address-level2" />
+          <input name="state" placeholder="State" required maxlength="60" autocomplete="address-level1" />
+          <input name="pincode" placeholder="PIN code" required inputmode="numeric" maxlength="6" autocomplete="postal-code" />
+        </div>
+        <h4>Payment</h4>
+        <div class="pay-methods" id="payMethods"></div>
+      </div>
+      <div class="co-right">
+        <h4>Order summary</h4>
+        <div id="coItems" class="co-items"></div>
+        <div class="coupon">
+          <input id="couponInput" placeholder="Coupon code" autocomplete="off" />
+          <button type="button" class="btn ghost sm" id="applyCoupon">Apply</button>
+        </div>
+        <p class="coupon-msg" id="couponMsg"></p>
+        <div id="coTotals"></div>
+        <button class="btn primary full lg" type="submit" id="placeOrder">Place order</button>
+        <p class="err" id="checkoutErr"></p>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="modal" id="demoPayModal">
+    <h3>Demo UPI payment</h3>
+    <p class="muted">Razorpay keys aren’t configured yet, so this simulates a UPI payment for the prototype. No money moves.</p>
+    <div class="upi-mock"><div class="qr" aria-hidden="true"></div><p>Pay <b id="demoPayAmt"></b> to <b>fier@upi</b></p></div>
+    <button class="btn primary full" id="demoPayOk">Simulate successful payment</button>
+    <button class="btn ghost full" id="demoPayCancel">Cancel</button>
+  </dialog>
+
+  <dialog class="modal" id="successModal">
+    <canvas id="confetti" aria-hidden="true"></canvas>
+    <h3>Order locked in 🔥</h3>
+    <p class="muted">Your vow is sealed. We’ve started heating the press.</p>
+    <p class="order-id">Order ID: <b id="successId"></b> <button class="link" id="copyOrderId">copy</button></p>
+    <div class="row gap">
+      <button class="btn primary grow" id="successTrack">Track delivery</button>
+      <button class="btn ghost grow" data-close>Keep shopping</button>
+    </div>
+    <p class="share">Flex it: <a id="shareWa" target="_blank" rel="noopener">Share on WhatsApp</a></p>
+  </dialog>
+
+  <dialog class="modal wide" id="ordersModal">
+    <button class="x" data-close aria-label="Close">×</button>
+    <h3>My orders</h3>
+    <div id="ordersList"></div>
+  </dialog>
+
+  <dialog class="modal" id="sizeModal">
+    <button class="x" data-close aria-label="Close">×</button>
+    <h3>Size guide (inches)</h3>
+    <div id="sizeTable"></div>
+    <p class="muted small">Measure a tee you love flat, armpit to armpit, and double it. Between sizes? Size up for a relaxed fit.</p>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>

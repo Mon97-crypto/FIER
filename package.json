@@ -1,0 +1,16 @@
+{
+  "name": "fier",
+  "version": "0.1.0",
+  "description": "FIER — Fear None. Burn Bright. Storefront for the Ramayana: Part 1 DTF tee drop.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=18.17"
+  },
+  "license": "UNLICENSED"
+}
