@@ -70,7 +70,7 @@ function render(orders, subscribers) {
     <div class="designs">${PRODUCTS.map(
       (p) => `<div class="d">${teeSVG({ product: p, color: p.colors[0], detail: 'low' })}<b>${esc(p.name)}</b><br/>${p.colors
         .map((c) => `<a href="/api/print/${p.id}.svg?color=${c}">⬇ for ${TEE_COLORS[c].name}</a>`)
-        .join('')}</div>`,
+        .join('')}${p.back ? `<a href="/api/print/${p.id}.svg?side=back">⬇ back print</a>` : ''}</div>`,
     ).join('')}</div>`;
 
   $('#subs').innerHTML = `<div class="row gap" style="margin-bottom:12px"><button class="btn primary sm" id="csv">Export CSV</button></div>

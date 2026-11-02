@@ -87,7 +87,7 @@ export class Boutique {
   constructor({ viewport, camera, room, onFocus, onBlur, onView, onBundle, onFounder, onCollection }) {
     Object.assign(this, { viewport, camera, room, onFocus, onBlur, onView, onBundle, onFounder, onCollection });
     this.colorOf = Object.fromEntries(PRODUCTS.map((p) => [p.id, p.colors[0]]));
-    this.fitOf = Object.fromEntries(PRODUCTS.map((p) => [p.id, 'men']));
+    this.fitOf = Object.fromEntries(PRODUCTS.map((p) => [p.id, p.fit || 'men']));
     this.collection = COLLECTIONS[0].id;
     this.items = productsIn(this.collection);
     this.view = 'intro';

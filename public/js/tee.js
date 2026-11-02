@@ -5,6 +5,20 @@ import { TEE_COLORS } from './catalog.js';
 let uid = 0;
 
 const SHAPES = {
+  // boxy streetwear cut: dropped shoulders, elbow-length wide sleeves, longer body
+  oversized: {
+    body: 'M196,84 Q250,76 304,84 L430,122 C454,152 474,222 486,300 L410,324 C404,302 398,284 392,270 C398,360 400,480 401,606 C300,616 200,616 99,606 C100,480 102,360 108,270 C102,284 96,302 90,324 L14,300 C26,222 46,152 70,122 Z',
+    neckIn: 'M196,84 Q250,76 304,84 Q250,130 196,84Z',
+    collar: 'M196,84 Q250,130 304,84',
+    collarBack: 'M196,84 Q250,96 304,84',
+    print: { x: 146, y: 150, w: 208, h: 250 },
+    back: { x: 140, y: 118, w: 220, h: 264 },
+    hems: ['M86,312 L20,290', 'M414,312 L480,290', 'M103,595 C200,605 300,605 397,595'],
+    folds: {
+      dark: ['M108,276 C150,300 196,306 226,292', 'M392,276 C350,300 304,306 274,292', 'M340,190 C352,330 344,470 356,606', 'M170,320 C160,430 168,520 150,606', 'M210,104 C180,126 140,136 100,140', 'M290,104 C320,126 360,136 400,140', 'M70,170 C82,220 88,262 90,300'],
+      light: ['M250,140 C246,300 252,460 246,606', 'M140,190 C134,320 140,450 130,590', 'M300,320 C308,420 302,520 310,604', 'M430,170 C420,220 414,262 412,300'],
+    },
+  },
   men: {
     body: 'M202,86 Q250,78 298,86 L410,138 C432,160 452,210 464,258 L402,286 C394,266 384,250 372,238 C376,330 377,470 373,592 C300,603 200,603 127,592 C123,470 124,330 128,238 C116,250 106,266 98,286 L36,258 C48,210 68,160 90,138 Z',
     neckIn: 'M202,86 Q250,78 298,86 Q250,134 202,86Z',
@@ -73,7 +87,7 @@ export function teeSVG({ product, color, fit = 'men', view = 'front', className 
   const ink = c.dark ? '#ffffff' : '#141414';
   const front = view === 'front';
   const pa = front ? s.print : s.back;
-  const art = front ? product.art(u + 'a', ink) : backArt(u + 'b', ink, product);
+  const art = front ? product.art(u + 'a', ink) : product.back ? product.back(u + 'b', ink) : backArt(u + 'b', ink, product);
   const hi = detail === 'high';
   const n = parseInt(c.hex.slice(1), 16);
   const lum = ((n >> 16) * 0.3 + ((n >> 8) & 255) * 0.59 + (n & 255) * 0.11) / 255;
@@ -97,7 +111,7 @@ ${hanger ? h.hook : ''}
 <path d="${s.neckIn}" fill="${shade(c.hex, -0.2)}"/>
 ${hanger ? `<g clip-path="url(#${u}neck)">${h.wood}</g>` : ''}
 <g clip-path="url(#${u}clip)">
-  <g ${hi ? `filter="url(#${u}warp)"` : ''} ${hi && product.distress && front ? `mask="url(#${u}worn)"` : ''}><svg x="${pa.x}" y="${pa.y}" width="${pa.w}" height="${pa.h}" viewBox="0 0 400 480" opacity=".95">${art}</svg></g>
+  <g ${hi ? `filter="url(#${u}warp)"` : ''} ${hi && product.distress ? `mask="url(#${u}worn)"` : ''}><svg x="${pa.x}" y="${pa.y}" width="${pa.w}" height="${pa.h}" viewBox="0 0 400 480" opacity=".95">${art}</svg></g>
   <g fill="none" stroke-linecap="round" ${hi ? `filter="url(#${u}blur)"` : 'opacity=".6"'}>
     ${s.folds.dark.map((d) => `<path d="${d}" stroke="#000" stroke-opacity="${darkFold}" stroke-width="22"/>`).join('')}
     ${s.folds.light.map((d) => `<path d="${d}" stroke="#fff" stroke-opacity="${lightFold}" stroke-width="18"/>`).join('')}

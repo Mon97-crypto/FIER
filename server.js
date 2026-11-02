@@ -504,11 +504,12 @@ route('GET', /^\/api\/admin\/subscribers$/, ({ req }) => {
   return { subscribers: db.subscribers };
 });
 route('GET', /^\/api\/print\/([\w-]+)\.svg$/, ({ url, params, res }) => {
-  const svg = printFileSVG(params[0], url.searchParams.get('color') || 'black');
+  const side = url.searchParams.get('side') === 'back' ? 'back' : 'front';
+  const svg = printFileSVG(params[0], url.searchParams.get('color') || 'black', side);
   if (!svg) throw new HttpError(404, 'Unknown design.');
   res.writeHead(200, {
     'Content-Type': 'image/svg+xml; charset=utf-8',
-    'Content-Disposition': `attachment; filename="RareCollections-${params[0]}-${url.searchParams.get('color') || 'black'}-DTF.svg"`,
+    'Content-Disposition': `attachment; filename="RareCollections-${params[0]}-${side}-${url.searchParams.get('color') || 'black'}-DTF.svg"`,
   });
   res.end(svg);
 });

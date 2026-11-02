@@ -6,10 +6,12 @@ export const SIZES = ['S', 'M', 'L', 'XL'];
 export const FITS = {
   men: { label: 'Men', sub: 'Regular fit' },
   women: { label: 'Women', sub: 'Fitted cut' },
+  oversized: { label: 'Oversized', sub: 'Drop shoulder' },
 };
 export const SIZE_CHART = {
   men: { S: [38, 27], M: [40, 28], L: [42, 29], XL: [44, 30] },
   women: { S: [34, 24.5], M: [36, 25.5], L: [38, 26.5], XL: [40, 27.5] },
+  oversized: { S: [42, 28], M: [44, 29], L: [46, 30], XL: [48, 31] },
 };
 export const TEE_COLORS = {
   black: { name: 'Jet Black', hex: '#151515', dark: true },
@@ -436,6 +438,150 @@ ${petals}
 ${footL(ink, 4)}`;
 }
 
+/* ================= DROP 02 · STREET EPICS =================
+   Indian streetwear style: oversized fits, halftone shading, poster type, vintage wear.
+   Original artwork; designed for dark tees (cream/gold/red inks). */
+const CREAM = '#f4e3c1', RED = '#d62828', MUSTARD = '#f2a541', TEAL = '#2a9d8f';
+const footS = (ink, n) =>
+  `<text x="200" y="472" text-anchor="middle" font-family="${BODY}" font-size="10" letter-spacing="3" fill="${ink}" opacity=".6">RARE COLLECTIONS · STREET EPICS · ${String(n).padStart(2, '0')}</text>`;
+// halftone dot field: rf(x, y) returns a dot radius (0 = no dot)
+function halftone(x0, y0, w, h, step, rf, color, clip = '') {
+  let d = '';
+  let row = 0;
+  for (let y = y0; y <= y0 + h; y += step, row++)
+    for (let x = x0 + (row % 2 ? step / 2 : 0); x <= x0 + w; x += step) {
+      const r = rf(x, y);
+      if (r > 0.3) d += `M${f(x - r)},${f(y)}a${f(r)},${f(r)} 0 1,0 ${f(2 * r)},0a${f(r)},${f(r)} 0 1,0 ${f(-2 * r)},0`;
+    }
+  return `<path d="${d}" fill="${color}" ${clip ? `clip-path="url(#${clip})"` : ''}/>`;
+}
+const star = (x, y, r, fill) => {
+  let d = '';
+  for (let i = 0; i < 10; i++) {
+    const a = (Math.PI / 5) * i - Math.PI / 2, rr = i % 2 ? r * 0.45 : r;
+    d += `${i ? 'L' : 'M'}${f(x + rr * Math.cos(a))},${f(y + rr * Math.sin(a))}`;
+  }
+  return `<path d="${d}Z" fill="${fill}"/>`;
+};
+
+/* ---------- S1 VANARA SENA WORLD TOUR (vintage band tee) ---------- */
+function vanaraTour(u, ink) {
+  let rays = '';
+  for (let i = 0; i < 24; i++) {
+    const a1 = (i * 15 * Math.PI) / 180, a2 = ((i * 15 + 7.5) * Math.PI) / 180;
+    rays += `<path d="M200,246 L${f(200 + 130 * Math.cos(a1))},${f(246 + 130 * Math.sin(a1))} L${f(200 + 130 * Math.cos(a2))},${f(246 + 130 * Math.sin(a2))}Z" fill="${i % 2 ? MUSTARD : RED}"/>`;
+  }
+  const gada = `<g transform="rotate(-38 200 246)">
+    <rect x="195" y="196" width="10" height="120" rx="4" fill="${CREAM}" stroke="#1b1b1b" stroke-width="2.5"/>
+    <circle cx="200" cy="184" r="26" fill="${MUSTARD}" stroke="#1b1b1b" stroke-width="3"/>
+    <path d="M176,184 Q200,170 224,184 M176,184 Q200,198 224,184 M200,158 L200,210" fill="none" stroke="#1b1b1b" stroke-width="2.5"/>
+    <path d="M194,158 L200,140 L206,158Z" fill="${CREAM}" stroke="#1b1b1b" stroke-width="2"/>
+    <rect x="190" y="312" width="20" height="10" rx="3" fill="${MUSTARD}" stroke="#1b1b1b" stroke-width="2"/></g>`;
+  const bow = `<g transform="rotate(38 200 246)">
+    <path d="M168,160 Q238,246 168,332" fill="none" stroke="#1b1b1b" stroke-width="10" stroke-linecap="round"/>
+    <path d="M168,160 Q238,246 168,332" fill="none" stroke="${CREAM}" stroke-width="5" stroke-linecap="round"/>
+    <line x1="168" y1="160" x2="168" y2="332" stroke="${CREAM}" stroke-width="2"/></g>`;
+  return `<defs><clipPath id="${u}c"><circle cx="200" cy="246" r="92"/></clipPath>
+<path id="${u}arc" d="M44,182 A170,170 0 0 1 356,182"/></defs>
+<text font-family="${DISPLAY}" font-size="58" letter-spacing="3" fill="${RED}" transform="translate(3 3)"><textPath href="#${u}arc" startOffset="50%" text-anchor="middle">VANARA SENA</textPath></text>
+<text font-family="${DISPLAY}" font-size="58" letter-spacing="3" fill="${CREAM}"><textPath href="#${u}arc" startOffset="50%" text-anchor="middle">VANARA SENA</textPath></text>
+${star(46, 236, 11, MUSTARD)}${star(354, 236, 11, MUSTARD)}${star(70, 290, 7, CREAM)}${star(330, 290, 7, CREAM)}
+<circle cx="200" cy="246" r="100" fill="#1b1b1b" stroke="${CREAM}" stroke-width="5"/>
+<g clip-path="url(#${u}c)">${rays}${halftone(108, 154, 184, 184, 7, (x, y) => 3.2 * Math.max(0, (Math.hypot(x - 200, y - 246) - 40) / 52), '#1b1b1b')}</g>
+<circle cx="200" cy="246" r="92" fill="none" stroke="#1b1b1b" stroke-width="4"/>
+${bow}${gada}
+<path d="M52,340 L348,340 L332,362 L348,384 L52,384 L68,362Z" fill="${RED}" stroke="#1b1b1b" stroke-width="3"/>
+<text x="200" y="374" text-anchor="middle" font-family="${DISPLAY}" font-size="32" letter-spacing="6" fill="${CREAM}">WORLD TOUR</text>
+<text x="200" y="414" text-anchor="middle" font-family="${DISPLAY}" font-size="19" letter-spacing="3" fill="${MUSTARD}">KISHKINDHA ✦ RAMA SETU ✦ LANKA</text>
+<text x="200" y="442" text-anchor="middle" font-family="${BODY}" font-weight="700" font-size="11" letter-spacing="2.5" fill="${ink}" opacity=".85">EST. TRETA YUGA · NO SHIPS, ONE BRIDGE</text>
+${footS(ink, 1)}`;
+}
+function vanaraTourBack(u, ink) {
+  const stops = [
+    ['01', 'KISHKINDHA', 'THE REUNION'], ['02', 'RISHYAMUKA HILL', 'ACOUSTIC SET'], ['03', 'MAHENDRA HILL', 'THE LEAP'],
+    ['04', 'ASHOKA VATIKA', 'SECRET SHOW'], ['05', 'RAMA SETU', 'BRIDGE PARTY'], ['06', 'LANKA', 'SOLD OUT'],
+  ];
+  return `<text x="200" y="64" text-anchor="middle" font-family="${DISPLAY}" font-size="50" letter-spacing="3" fill="${CREAM}">VANARA SENA</text>
+<text x="200" y="98" text-anchor="middle" font-family="${DISPLAY}" font-size="26" letter-spacing="10" fill="${RED}">WORLD TOUR '26</text>
+<line x1="60" y1="118" x2="340" y2="118" stroke="${MUSTARD}" stroke-width="3"/>
+${stops.map(([n, city, note], i) => {
+    const y = 160 + i * 46;
+    const last = i === stops.length - 1;
+    return `<text x="62" y="${y}" font-family="${DISPLAY}" font-size="16" letter-spacing="2" fill="${MUSTARD}">DAY ${n}</text>
+<text x="128" y="${y}" font-family="${DISPLAY}" font-size="24" letter-spacing="1" fill="${CREAM}">${city}</text>
+<text x="128" y="${y + 17}" font-family="${BODY}" font-weight="700" font-size="10.5" letter-spacing="3" fill="${last ? RED : ink}" opacity="${last ? 1 : 0.7}">${note}</text>
+${last ? `<g transform="rotate(-12 312 ${y - 4})"><rect x="262" y="${y - 22}" width="100" height="32" rx="4" fill="none" stroke="${RED}" stroke-width="3"/><text x="312" y="${y}" text-anchor="middle" font-family="${DISPLAY}" font-size="18" letter-spacing="2" fill="${RED}">ON FIRE</text></g>` : ''}`;
+  }).join('')}
+<line x1="60" y1="440" x2="340" y2="440" stroke="${MUSTARD}" stroke-width="3"/>
+<text x="200" y="466" text-anchor="middle" font-family="${BODY}" font-weight="700" font-size="11" letter-spacing="4" fill="${ink}" opacity=".8">RARE COLLECTIONS · LIMITED TO 150 PIECES</text>`;
+}
+
+/* ---------- S2 BAJRANG (poster style: sun, mountain, mace) ---------- */
+function bajrang(u, ink) {
+  const r = rng(41);
+  let herbs = '';
+  for (let i = 0; i < 16; i++) herbs += `<circle cx="${f(130 + r() * 140)}" cy="${f(258 + r() * 52)}" r="${f(2 + r() * 2.5)}" fill="#d8ff6a"/>`;
+  return `<defs><clipPath id="${u}sun"><circle cx="212" cy="196" r="128"/></clipPath>
+<linearGradient id="${u}m" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${TEAL}"/><stop offset="1" stop-color="#0f3d3a"/></linearGradient></defs>
+<circle cx="212" cy="196" r="128" fill="${RED}"/>
+${halftone(84, 68, 260, 260, 8, (x, y) => 3.6 * Math.max(0, Math.min(1, (y - 150) / 170)), '#7a0e10', `${u}sun`)}
+<g stroke="${CREAM}" stroke-width="3" stroke-linecap="round" opacity=".9"><line x1="84" y1="120" x2="140" y2="120"/><line x1="70" y1="140" x2="120" y2="140"/><line x1="96" y1="160" x2="136" y2="160"/></g>
+<g transform="rotate(32 290 250)">
+  <rect x="284" y="166" width="14" height="214" rx="6" fill="${MUSTARD}" stroke="#1b1b1b" stroke-width="3"/>
+  ${[200, 230, 330, 360].map((y) => `<rect x="280" y="${y}" width="22" height="7" rx="2" fill="${CREAM}" stroke="#1b1b1b" stroke-width="2"/>`).join('')}
+  <circle cx="291" cy="140" r="40" fill="${MUSTARD}" stroke="#1b1b1b" stroke-width="3.5"/>
+  ${halftone(251, 100, 80, 80, 6, (x, y) => (Math.hypot(x - 291, y - 140) < 37 ? 2.4 * Math.max(0, (x - 276) / 50) : 0), '#b8741a')}
+  <path d="M252,140 Q291,120 330,140 M252,140 Q291,160 330,140 M291,100 L291,180" fill="none" stroke="#1b1b1b" stroke-width="3"/>
+  <path d="M283,100 L291,74 L299,100Z" fill="${CREAM}" stroke="#1b1b1b" stroke-width="2.5"/>
+</g>
+<path d="M70,316 L136,214 L164,252 L204,176 L240,240 L262,214 L330,316Z" fill="url(#${u}m)" stroke="#1b1b1b" stroke-width="3.5" stroke-linejoin="round"/>
+${halftone(70, 176, 260, 140, 6, (x, y) => (y > 236 ? 1.8 * ((y - 236) / 80) : 0), '#0a2624')}
+<path d="M196,190 L204,176 L212,192 M128,228 L136,214 L144,226" fill="none" stroke="${CREAM}" stroke-width="3" stroke-linejoin="round"/>
+${herbs}
+<g fill="${CREAM}" stroke="#1b1b1b" stroke-width="3"><ellipse cx="104" cy="318" rx="42" ry="14"/><ellipse cx="160" cy="326" rx="50" ry="16"/><ellipse cx="236" cy="324" rx="56" ry="17"/><ellipse cx="300" cy="318" rx="42" ry="13"/></g>
+<text transform="translate(44 330) rotate(-90)" font-family="${DEVA}" font-size="46" fill="${RED}">बजरंग</text>
+<text x="200" y="410" text-anchor="middle" font-family="${DISPLAY}" font-size="84" letter-spacing="4" fill="${RED}" transform="translate(4 4)">BAJRANG</text>
+<text x="200" y="410" text-anchor="middle" font-family="${DISPLAY}" font-size="84" letter-spacing="4" fill="${CREAM}">BAJRANG</text>
+<text x="200" y="442" text-anchor="middle" font-family="${BODY}" font-weight="700" font-size="12" letter-spacing="4" fill="${ink}">IMPOSSIBLE IS FOR OTHERS</text>
+${footS(ink, 2)}`;
+}
+
+/* ---------- S3 DHARMA YUDDHA (versus poster) ---------- */
+function dharmaYuddha(u, ink) {
+  const BLUE = '#3a7bd5';
+  let crown = 'M248,236';
+  const pts = 10;
+  for (let i = 0; i <= pts; i++) {
+    const x = 248 + (i * 84) / pts;
+    crown += ` L${f(x)},${f(i % 2 ? 214 : 176 - (i === 5 ? 16 : 0))}`;
+  }
+  crown += ' L332,236 Z';
+  return `<defs><clipPath id="${u}L"><path d="M0,120 L232,120 L168,360 L0,360Z"/></clipPath><clipPath id="${u}R"><path d="M232,120 L400,120 L400,360 L168,360Z"/></clipPath></defs>
+<text x="200" y="66" text-anchor="middle" font-family="${DEVA}" font-size="46" fill="${MUSTARD}">धर्म युद्ध</text>
+<text x="200" y="98" text-anchor="middle" font-family="${DISPLAY}" font-size="22" letter-spacing="9" fill="${ink}">DHARMA YUDDHA</text>
+${halftone(10, 124, 230, 234, 8, (x, y) => 3.4 * Math.max(0, 1 - Math.abs(x - 180) / 190), BLUE, `${u}L`)}
+${halftone(160, 124, 236, 234, 8, (x, y) => 3.4 * Math.max(0, 1 - Math.abs(x - 220) / 190), RED, `${u}R`)}
+<path d="M232,120 L168,360" stroke="${CREAM}" stroke-width="4"/>
+<g transform="translate(-6 0)">
+  <path d="M104,150 Q160,240 104,330" fill="none" stroke="#1b1b1b" stroke-width="13" stroke-linecap="round"/>
+  <path d="M104,150 Q160,240 104,330" fill="none" stroke="${CREAM}" stroke-width="7" stroke-linecap="round"/>
+  <polyline points="104,150 60,240 104,330" fill="none" stroke="${CREAM}" stroke-width="2"/>
+  <line x1="60" y1="240" x2="170" y2="240" stroke="#1b1b1b" stroke-width="7"/><line x1="60" y1="240" x2="170" y2="240" stroke="${MUSTARD}" stroke-width="3.5"/>
+  <path d="M182,240 L162,228 L166,240 L162,252Z" fill="${CREAM}" stroke="#1b1b1b" stroke-width="2"/>
+</g>
+<path d="${crown}" fill="${MUSTARD}" stroke="#1b1b1b" stroke-width="3" stroke-linejoin="round"/>
+<rect x="244" y="234" width="92" height="20" rx="3" fill="${MUSTARD}" stroke="#1b1b1b" stroke-width="3"/>
+${[258, 276, 294, 312, 324].map((x, k) => `<circle cx="${x}" cy="244" r="4" fill="${k % 2 ? TEAL : RED}"/>`).join('')}
+<text x="290" y="286" text-anchor="middle" font-family="${DISPLAY}" font-size="18" letter-spacing="6" fill="${CREAM}">× 10</text>
+<g>${fire(200, 290, 34, 120, 0, RED)}</g>
+<text x="200" y="272" text-anchor="middle" font-family="${DISPLAY}" font-size="64" fill="#1b1b1b" transform="translate(3 3)">VS</text>
+<text x="200" y="272" text-anchor="middle" font-family="${DISPLAY}" font-size="64" fill="${CREAM}">VS</text>
+<text x="104" y="402" text-anchor="middle" font-family="${DISPLAY}" font-size="42" letter-spacing="2" fill="${BLUE}">RAMA</text>
+<text x="300" y="402" text-anchor="middle" font-family="${DISPLAY}" font-size="42" letter-spacing="2" fill="${RED}">RAAVANA</text>
+<text x="200" y="440" text-anchor="middle" font-family="${BODY}" font-weight="700" font-size="11" letter-spacing="2.5" fill="${ink}" opacity=".85">THE FINAL WAR · LANKA · TRETA YUGA</text>
+${footS(ink, 3)}`;
+}
+
 export const PRODUCTS = [
   {
     id: 'kodanda', name: 'Kodanda', deva: 'कोदण्ड', tagline: 'One Arrow · One Promise', tag: 'Bestseller',
@@ -498,11 +644,28 @@ export const PRODUCTS = [
     palette: ['#e8c25a', '#ff7a2e', '#7a0f1d'], colors: ['black', 'navy', 'sand'], art: pushpaka, edition: 99, distress: true,
     story: 'The legendary flying chariot of Lanka: a golden vimana on swan wings, sailing above the clouds into a burning sunset. For anyone who refuses to stay grounded.',
   },
+  // ---- Drop 02 · Street Epics (oversized streetwear) ----
+  {
+    id: 'vanara-tour', collection: 'street', name: 'Vanara Sena World Tour', deva: 'वानर सेना', tagline: 'No Ships. One Bridge.', tag: 'Tour Tee',
+    palette: ['#f2a541', '#d62828', '#f4e3c1'], colors: ['black', 'navy', 'forest'], art: vanaraTour, back: vanaraTourBack, fit: 'oversized', distress: true,
+    story: 'A vintage band tee for the greatest army ever assembled. Crossed bow and mace on a sunburst, and on the back the full tour: Kishkindha, Rama Setu and a Lanka show that ended up on fire.',
+  },
+  {
+    id: 'bajrang', collection: 'street', name: 'Bajrang', deva: 'बजरंग', tagline: 'Impossible Is For Others', tag: 'Poster Tee',
+    palette: ['#d62828', '#2a9d8f', '#f2a541'], colors: ['black', 'maroon', 'navy'], art: bajrang, fit: 'oversized', distress: true,
+    story: 'Poster art for the one who carried a mountain because he could not find a single herb. Halftone sun, the Sanjeevani peak riding the clouds and a golden mace, in a bold oversized print.',
+  },
+  {
+    id: 'dharma-yuddha', collection: 'street', name: 'Dharma Yuddha', deva: 'धर्म युद्ध', tagline: 'The Final War', tag: 'Versus',
+    palette: ['#3a7bd5', '#d62828', '#f2a541'], colors: ['black', 'navy', 'maroon'], art: dharmaYuddha, fit: 'oversized', distress: true,
+    story: 'The original main event. The bow on a blue halftone, ten crowns on red, and a burning VS in the middle. Pick a side, or wear both.',
+  },
 ];
 
 export const COLLECTIONS = [
   { id: 'epic', name: 'Drop 01 · The Epic', short: 'The Epic', wall: 'Drop 01 · Ramayana: Part 1', edition: 150 },
   { id: 'lankeshwar', name: 'The Lankeshwar Capsule', short: 'Lankeshwar', wall: 'The Lankeshwar Capsule · Ten crowns. One throne.', edition: 99, isNew: true },
+  { id: 'street', name: 'Drop 02 · Street Epics', short: 'Street Epics', wall: 'Drop 02 · Street Epics · Oversized', edition: 150, isNew: true },
 ];
 PRODUCTS.forEach((p) => {
   p.collection ??= 'epic';
@@ -514,7 +677,7 @@ export const productsIn = (collectionId) => PRODUCTS.filter((p) => p.collection 
 export const getProduct = (id) => PRODUCTS.find((p) => p.id === id);
 
 /** Standalone, print-ready SVG for DTF production (transparent background, 12" × 14.4"). */
-export function printFileSVG(productId, colorKey) {
+export function printFileSVG(productId, colorKey, side = 'front') {
   const p = getProduct(productId);
   if (!p) return null;
   const c = TEE_COLORS[colorKey] || TEE_COLORS.black;
@@ -523,6 +686,6 @@ export function printFileSVG(productId, colorKey) {
 <!-- Rare Collections by Sathish · DTF print file · ${p.name} · for ${c.name} tees · print at 100% (12in x 14.4in). Convert text to outlines before RIP. -->
 <svg xmlns="http://www.w3.org/2000/svg" width="12in" height="14.4in" viewBox="0 0 400 480">
 <style>@import url('https://fonts.googleapis.com/css2?family=Anton&amp;family=Fraunces:ital,wght@0,300;0,700;0,900;1,300&amp;family=Space+Grotesk:wght@400;700&amp;family=Tiro+Devanagari+Hindi&amp;display=swap');</style>
-${p.art('p', ink)}
+${p.distress ? `<defs><filter id="wear" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.55" numOctaves="3" seed="${p.no * 7}"/><feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -14 5.05"/></filter><mask id="worn" maskUnits="userSpaceOnUse" x="0" y="0" width="400" height="480"><rect width="400" height="480" fill="#fff"/><rect width="400" height="480" filter="url(#wear)"/></mask></defs><g mask="url(#worn)">` : '<g>'}${side === 'back' && p.back ? p.back('p', ink) : p.art('p', ink)}</g>
 </svg>`;
 }
