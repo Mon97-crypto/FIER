@@ -291,6 +291,151 @@ ${text(200, 446, 27, ink, 'BORN OF THE SUN', 'letter-spacing="5"')}
 ${foot(ink, 8)}`;
 }
 
+/* ================= THE LANKESHWAR CAPSULE =================
+   Original artwork inspired by Raavana of the Ramayana epic (public-domain mythology).
+   Gold-foil look: metallic gradients with a hard specular band. */
+const ROYAL = "Fraunces, 'Playfair Display', Georgia, serif";
+const footL = (ink, n) =>
+  `<text x="200" y="470" text-anchor="middle" font-family="${BODY}" font-size="10.5" letter-spacing="3" fill="${ink}" opacity=".65">RARE COLLECTIONS · LANKESHWAR CAPSULE · ${String(n).padStart(2, '0')}</text>`;
+const goldDefs = (u) => `
+<linearGradient id="${u}au" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff4c2"/><stop offset=".28" stop-color="#e8c25a"/><stop offset=".5" stop-color="#a87a24"/><stop offset=".6" stop-color="#f6dc8a"/><stop offset="1" stop-color="#8a5e18"/></linearGradient>
+<linearGradient id="${u}ad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff1b8"/><stop offset=".35" stop-color="#d9ac45"/><stop offset=".55" stop-color="#8f6519"/><stop offset=".7" stop-color="#f3d27c"/><stop offset="1" stop-color="#9c6d1f"/></linearGradient>`;
+
+/* ---------- L1 LANKESHWAR (royal crest) ---------- */
+function lankeshwar(u, ink) {
+  let flames = '';
+  for (let k = 0; k < 10; k++) flames += `<g transform="rotate(${k * 36} 200 230)">${fire(200, 98, 9, 30, k % 2 ? 3 : -3, '#c4102c')}</g>`;
+  const towers = [[158, 14, 26, 'd'], [175, 12, 40, 's'], [192, 16, 52, 'd'], [211, 12, 40, 's'], [226, 14, 26, 'd']]
+    .map(([x, w, h, t]) => {
+      const top = 304 - h;
+      return `<rect x="${x}" y="${top}" width="${w}" height="${h}" fill="url(#${u}au)"/>` +
+        (t === 'd' ? `<path d="M${x},${top} A${w / 2},${w / 2} 0 0 1 ${x + w},${top}Z" fill="url(#${u}au)"/>` : `<path d="M${x},${top} L${x + w / 2},${top - 16} L${x + w},${top}Z" fill="url(#${u}au)"/>`);
+    }).join('');
+  return `<defs>${goldDefs(u)}
+<radialGradient id="${u}v" cx=".5" cy=".4"><stop offset="0" stop-color="#7a0f1d"/><stop offset="1" stop-color="#1a0306"/></radialGradient></defs>
+<text x="200" y="58" text-anchor="middle" font-family="${ROYAL}" font-weight="900" font-size="46" letter-spacing="5" fill="url(#${u}au)">LANKESHWAR</text>
+${flames}
+<circle cx="200" cy="230" r="128" fill="url(#${u}v)" stroke="url(#${u}ad)" stroke-width="5"/>
+<circle cx="200" cy="230" r="116" fill="none" stroke="#e8c25a" stroke-width="1.4" stroke-dasharray="2 5"/>
+<path d="M118,330 Q200,292 282,330 L282,346 L118,346Z" fill="#3a0710"/>
+${towers}
+<rect x="150" y="302" width="100" height="6" fill="url(#${u}au)"/>
+<path d="M140,250 L144,198 L164,222 L178,178 L192,210 L200,140 L208,210 L222,178 L236,222 L256,198 L260,250 Z" fill="url(#${u}ad)" stroke="#5a3a08" stroke-width="1.5" stroke-linejoin="round"/>
+<rect x="138" y="248" width="124" height="22" rx="3" fill="url(#${u}au)" stroke="#5a3a08" stroke-width="1.5"/>
+${[150, 170, 190, 210, 230, 250].map((x, k) => `<circle cx="${x}" cy="259" r="4" fill="${k % 2 ? '#1f7a4a' : '#c4102c'}" stroke="#fff4c2" stroke-width=".8"/>`).join('')}
+${[[144, 198], [178, 178], [200, 140], [222, 178], [256, 198]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="5.5" fill="url(#${u}au)"/><circle cx="${x}" cy="${y}" r="2.6" fill="#c4102c"/>`).join('')}
+<ellipse cx="200" cy="228" rx="9" ry="12" fill="#c4102c" stroke="#fff4c2" stroke-width="1.2"/><ellipse cx="197" cy="223" rx="2.5" ry="4" fill="#fff" opacity=".7"/>
+<path d="M88,354 L312,354 L300,370 L312,386 L88,386 L100,370Z" fill="#7a0f1d" stroke="url(#${u}ad)" stroke-width="2"/>
+<text x="200" y="376" text-anchor="middle" font-family="${ROYAL}" font-weight="700" font-size="14" letter-spacing="3" fill="url(#${u}au)">KING OF GOLDEN LANKA</text>
+<text x="200" y="430" text-anchor="middle" font-family="${DEVA}" font-size="34" fill="url(#${u}au)">लंकेश्वर</text>
+${footL(ink, 1)}`;
+}
+
+/* ---------- L2 TEN CROWNS (minimal line art) ---------- */
+function crownLine(cx, cy, s, stroke) {
+  const w = 22 * s, h = 18 * s;
+  return `<path d="M${cx - w},${cy} L${cx - w},${cy - h * 0.6} L${cx - w / 2},${cy - h * 0.25} L${cx},${cy - h} L${cx + w / 2},${cy - h * 0.25} L${cx + w},${cy - h * 0.6} L${cx + w},${cy} Z" fill="${stroke}" fill-opacity=".18" stroke="${stroke}" stroke-width="2.6" stroke-linejoin="round"/>
+<line x1="${cx - w}" y1="${cy + 4 * s}" x2="${cx + w}" y2="${cy + 4 * s}" stroke="${stroke}" stroke-width="2"/>
+<circle cx="${cx}" cy="${cy - h}" r="${2.4 * s}" fill="${stroke}"/><circle cx="${cx - w}" cy="${cy - h * 0.6}" r="${1.8 * s}" fill="${stroke}"/><circle cx="${cx + w}" cy="${cy - h * 0.6}" r="${1.8 * s}" fill="${stroke}"/>`;
+}
+function tenCrowns(u, ink) {
+  let crowns = '';
+  for (let k = 0; k < 10; k++) {
+    const a = ((196 + k * (148 / 9)) * Math.PI) / 180;
+    crowns += crownLine(f(200 + 160 * Math.cos(a)), f(300 + 160 * Math.sin(a)), k === 4 || k === 5 ? 1.45 : 1.2, `url(#${u}au)`);
+  }
+  return `<defs>${goldDefs(u)}</defs>
+<text x="200" y="56" text-anchor="middle" font-family="${DEVA}" font-size="30" fill="url(#${u}au)">दशानन</text>
+<text x="200" y="80" text-anchor="middle" font-family="${BODY}" font-size="11" letter-spacing="7" fill="${ink}" opacity=".75">DASHANAN</text>
+${crowns}
+<circle cx="200" cy="300" r="112" fill="none" stroke="${ink}" stroke-width="1" stroke-dasharray="1 6" opacity=".55"/>
+<g transform="translate(-40 -20) scale(1.2)" fill="none" stroke="url(#${u}ad)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+  <path d="M172,334 L172,250 Q172,222 200,214 Q228,222 228,250 L228,334"/>
+  <path d="M184,320 L184,256 Q184,236 200,230 Q216,236 216,256 L216,320"/>
+  <path d="M156,316 L244,316 M160,316 L160,346 M240,316 L240,346 M150,304 L250,304"/>
+  <path d="M200,214 C192,200 194,188 200,180 C206,188 208,200 200,214Z M200,214 C186,206 180,196 182,186 C192,192 198,202 200,214Z M200,214 C214,206 220,196 218,186 C208,192 202,202 200,214Z"/>
+</g>
+<text x="200" y="398" text-anchor="middle" font-family="${ROYAL}" font-weight="900" font-size="40" letter-spacing="1" fill="${ink}">TEN CROWNS.</text>
+<text x="200" y="438" text-anchor="middle" font-family="${ROYAL}" font-style="italic" font-weight="300" font-size="34" fill="url(#${u}au)">One throne.</text>
+${footL(ink, 2)}`;
+}
+
+/* ---------- L3 THE SCHOLAR KING (rudra veena) ---------- */
+function scholarKing(u, ink) {
+  const A = [78, 352], B = [322, 108];
+  const P = (t) => [A[0] + (B[0] - A[0]) * t, A[1] + (B[1] - A[1]) * t];
+  const n = [0.707, 0.707];
+  const gourd = (t) => {
+    const [x, y] = P(t);
+    const gx = x + n[0] * 46, gy = y + n[1] * 46;
+    return `<line x1="${f(x)}" y1="${f(y)}" x2="${f(gx)}" y2="${f(gy)}" stroke="#6b3410" stroke-width="7"/>
+<circle cx="${f(gx)}" cy="${f(gy)}" r="40" fill="url(#${u}g)" stroke="url(#${u}ad)" stroke-width="3"/>
+<ellipse cx="${f(gx - 12)}" cy="${f(gy - 14)}" rx="10" ry="6" fill="#fff" opacity=".35" transform="rotate(-35 ${f(gx - 12)} ${f(gy - 14)})"/>`;
+  };
+  let frets = '';
+  for (let t = 0.3; t <= 0.66; t += 0.03) {
+    const [x, y] = P(t);
+    frets += `<line x1="${f(x - n[0] * 11)}" y1="${f(y - n[1] * 11)}" x2="${f(x + n[0] * 11)}" y2="${f(y + n[1] * 11)}" stroke="url(#${u}au)" stroke-width="2.2"/>`;
+  }
+  let strings = '';
+  for (const o of [-6, -2, 2, 6]) strings += `<line x1="${f(A[0] + n[0] * o)}" y1="${f(A[1] + n[1] * o)}" x2="${f(B[0] + n[0] * o)}" y2="${f(B[1] + n[1] * o)}" stroke="#fff6dc" stroke-width=".8" opacity=".9"/>`;
+  let notes = '';
+  [[0.42, -1], [0.52, 1], [0.6, -1]].forEach(([t, l]) => {
+    const [x, y] = P(t);
+    notes += fire(f(x - n[0] * 16), f(y - n[1] * 16), 8, 34, l * 4, '#c4102c');
+  });
+  return `<defs>${goldDefs(u)}
+<radialGradient id="${u}halo" cx=".5" cy=".5"><stop offset="0" stop-color="#3b1a6b" stop-opacity=".95"/><stop offset=".7" stop-color="#1c0b33" stop-opacity=".6"/><stop offset="1" stop-color="#1c0b33" stop-opacity="0"/></radialGradient>
+<radialGradient id="${u}g" cx=".35" cy=".3"><stop offset="0" stop-color="#ffd38a"/><stop offset=".6" stop-color="#c7782b"/><stop offset="1" stop-color="#6b3410"/></radialGradient>
+<linearGradient id="${u}wood" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c47a35"/><stop offset=".5" stop-color="#7a3b12"/><stop offset="1" stop-color="#b56a2a"/></linearGradient></defs>
+<text x="200" y="52" text-anchor="middle" font-family="${ROYAL}" font-weight="700" font-size="21" letter-spacing="4" fill="${ink}">SCHOLAR · WARRIOR · KING</text>
+<circle cx="200" cy="232" r="150" fill="url(#${u}halo)"/>
+<path d="M304,80 A52,52 0 1 0 352,150 A40,40 0 1 1 304,80Z" fill="url(#${u}au)" opacity=".95"/>
+${gourd(0.2)}${gourd(0.72)}
+<line x1="${A[0]}" y1="${A[1]}" x2="${B[0]}" y2="${B[1]}" stroke="#3a1a06" stroke-width="22" stroke-linecap="round"/>
+<line x1="${A[0]}" y1="${A[1]}" x2="${B[0]}" y2="${B[1]}" stroke="url(#${u}wood)" stroke-width="17" stroke-linecap="round"/>
+${frets}${strings}
+<path d="M${B[0]},${B[1]} c10,-10 26,-8 26,4 c0,12 -16,14 -18,4 c-2,-6 6,-8 8,-4" fill="none" stroke="url(#${u}au)" stroke-width="4" stroke-linecap="round"/>
+<circle cx="${A[0]}" cy="${A[1]}" r="9" fill="url(#${u}au)"/>
+${notes}
+<text x="200" y="420" text-anchor="middle" font-family="${DEVA}" font-size="42" fill="url(#${u}au)">रावण</text>
+<text x="200" y="446" text-anchor="middle" font-family="${BODY}" font-size="12" letter-spacing="6" fill="${ink}" opacity=".85">MASTER OF THE VEENA</text>
+${footL(ink, 3)}`;
+}
+
+/* ---------- L4 PUSHPAKA (the flying chariot) ---------- */
+function pushpaka(u, ink) {
+  const feather = (L, W) => `M0,0 C${f(L * 0.3)},${-W} ${f(L * 0.8)},${f(-W * 0.6)} ${L},0 C${f(L * 0.8)},${f(W * 0.6)} ${f(L * 0.3)},${W} 0,0Z`;
+  let wings = '';
+  for (const side of [-1, 1]) {
+    let g = '';
+    for (let i = 0; i < 6; i++) g += `<path transform="rotate(${-62 + i * 11})" d="${feather(120 - i * 10, 11)}" fill="url(#${u}w)" stroke="#5a3a08" stroke-width="1"/>`;
+    wings += `<g transform="translate(${200 + side * 78} 288) scale(${side} 1)">${g}</g>`;
+  }
+  let petals = '';
+  for (let i = -3; i <= 3; i++) petals += `<path d="M${200 + i * 20},312 C${190 + i * 20},300 ${192 + i * 20},288 ${200 + i * 20},282 C${208 + i * 20},288 ${210 + i * 20},300 ${200 + i * 20},312Z" fill="${i % 2 ? '#e86a8a' : '#f6b8c8'}" stroke="#fff4c2" stroke-width="1"/>`;
+  return `<defs>${goldDefs(u)}
+<radialGradient id="${u}sun" cx=".5" cy=".45"><stop offset="0" stop-color="#ffcf6b"/><stop offset=".55" stop-color="#ff7a2e"/><stop offset="1" stop-color="#7a0f1d"/></radialGradient>
+<linearGradient id="${u}w" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fffaf0"/><stop offset=".6" stop-color="#f3e2b8"/><stop offset="1" stop-color="#d9ac45"/></linearGradient></defs>
+<text x="200" y="62" text-anchor="middle" font-family="${ROYAL}" font-weight="900" font-size="52" letter-spacing="4" fill="url(#${u}au)">PUSHPAKA</text>
+<circle cx="200" cy="222" r="122" fill="url(#${u}sun)"/>
+<g stroke="${ink}" stroke-width="3" stroke-linecap="round" opacity=".6"><line x1="20" y1="250" x2="80" y2="250"/><line x1="34" y1="276" x2="96" y2="276"/><line x1="16" y1="302" x2="70" y2="302"/></g>
+${wings}
+<rect x="120" y="270" width="160" height="14" rx="3" fill="url(#${u}au)" stroke="#5a3a08" stroke-width="1"/>
+${[136, 170, 230, 264].map((x) => `<rect x="${x - 3}" y="222" width="6" height="48" fill="url(#${u}au)"/>`).join('')}
+<rect x="128" y="208" width="144" height="14" rx="2" fill="url(#${u}ad)"/>
+<rect x="142" y="194" width="116" height="14" rx="2" fill="url(#${u}au)"/>
+<rect x="156" y="180" width="88" height="14" rx="2" fill="url(#${u}ad)"/>
+<path d="M168,180 Q200,118 232,180Z" fill="url(#${u}au)" stroke="#5a3a08" stroke-width="1"/>
+<circle cx="200" cy="120" r="7" fill="url(#${u}au)"/><line x1="200" y1="113" x2="200" y2="92" stroke="url(#${u}au)" stroke-width="2.5"/>
+<path d="M200,92 L222,99 L200,106Z" fill="#c4102c"/>
+${petals}
+<g fill="#f6efe2" opacity=".95"><ellipse cx="110" cy="338" rx="46" ry="15"/><ellipse cx="166" cy="346" rx="54" ry="17"/><ellipse cx="240" cy="344" rx="60" ry="18"/><ellipse cx="304" cy="336" rx="44" ry="14"/></g>
+<text x="200" y="408" text-anchor="middle" font-family="${DEVA}" font-size="30" fill="url(#${u}au)">पुष्पक विमान</text>
+<text x="200" y="442" text-anchor="middle" font-family="${BODY}" font-size="13" font-weight="700" letter-spacing="7" fill="${ink}">RULE THE SKIES</text>
+${footL(ink, 4)}`;
+}
+
 export const PRODUCTS = [
   {
     id: 'kodanda', name: 'Kodanda', deva: 'कोदण्ड', tagline: 'One Arrow · One Promise', tag: 'Bestseller',
@@ -332,9 +477,39 @@ export const PRODUCTS = [
     palette: ['#ffb300', '#ff2e88', '#7b2ff7'], colors: ['sky', 'black', 'white', 'maroon'], art: surya,
     story: 'Descendants of the Sun don’t dim for anyone. A 32-ray sunburst and a lotus mandala in full festival colour.',
   },
+  // ---- The Lankeshwar Capsule (Raavana of the epic) ----
+  {
+    id: 'lankeshwar', collection: 'lankeshwar', name: 'Lankeshwar', deva: 'लंकेश्वर', tagline: 'King Of Golden Lanka', tag: 'Capsule',
+    palette: ['#e8c25a', '#c4102c', '#f6dc8a'], colors: ['black', 'maroon', 'navy'], art: lankeshwar, edition: 99, distress: true,
+    story: 'The crest of a king whose city was built of gold. Ten flames ring a jewelled crown above the towers of Lanka, in a worn gold-foil finish.',
+  },
+  {
+    id: 'ten-crowns', collection: 'lankeshwar', name: 'Ten Crowns', deva: 'दशानन', tagline: 'Ten Crowns. One Throne.', tag: 'Capsule',
+    palette: ['#e8c25a', '#f6dc8a', '#c4102c'], colors: ['black', 'forest', 'maroon'], art: tenCrowns, edition: 99, distress: true,
+    story: 'Ten crowns orbit a single throne in fine gold line-art. For the ones with many sides who still sit tall. Quiet, minimal, unmistakably royal.',
+  },
+  {
+    id: 'scholar-king', collection: 'lankeshwar', name: 'The Scholar King', deva: 'रावण', tagline: 'Scholar · Warrior · King', tag: 'Capsule',
+    palette: ['#e8c25a', '#3b1a6b', '#c47a35'], colors: ['navy', 'black', 'sand'], art: scholarKing, edition: 99, distress: true,
+    story: 'Before the war, Raavana was a scholar, a poet and a master of the veena. A rudra veena burning with music under a golden moon: the side of the legend people forget.',
+  },
+  {
+    id: 'pushpaka', collection: 'lankeshwar', name: 'Pushpaka', deva: 'पुष्पक विमान', tagline: 'Rule The Skies', tag: 'Capsule',
+    palette: ['#e8c25a', '#ff7a2e', '#7a0f1d'], colors: ['black', 'navy', 'sand'], art: pushpaka, edition: 99, distress: true,
+    story: 'The legendary flying chariot of Lanka: a golden vimana on swan wings, sailing above the clouds into a burning sunset. For anyone who refuses to stay grounded.',
+  },
 ];
 
-PRODUCTS.forEach((p, i) => (p.no = i + 1));
+export const COLLECTIONS = [
+  { id: 'epic', name: 'Drop 01 · The Epic', short: 'The Epic', wall: 'Drop 01 · Ramayana: Part 1', edition: 150 },
+  { id: 'lankeshwar', name: 'The Lankeshwar Capsule', short: 'Lankeshwar', wall: 'The Lankeshwar Capsule · Ten crowns. One throne.', edition: 99, isNew: true },
+];
+PRODUCTS.forEach((p) => {
+  p.collection ??= 'epic';
+  p.edition ??= 150;
+});
+for (const c of COLLECTIONS) PRODUCTS.filter((p) => p.collection === c.id).forEach((p, i) => (p.no = i + 1));
+export const productsIn = (collectionId) => PRODUCTS.filter((p) => p.collection === collectionId);
 
 export const getProduct = (id) => PRODUCTS.find((p) => p.id === id);
 
@@ -347,7 +522,7 @@ export function printFileSVG(productId, colorKey) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <!-- Rare Collections by Sathish · DTF print file · ${p.name} · for ${c.name} tees · print at 100% (12in x 14.4in). Convert text to outlines before RIP. -->
 <svg xmlns="http://www.w3.org/2000/svg" width="12in" height="14.4in" viewBox="0 0 400 480">
-<style>@import url('https://fonts.googleapis.com/css2?family=Anton&amp;family=Space+Grotesk:wght@400;700&amp;family=Tiro+Devanagari+Hindi&amp;display=swap');</style>
+<style>@import url('https://fonts.googleapis.com/css2?family=Anton&amp;family=Fraunces:ital,wght@0,300;0,700;0,900;1,300&amp;family=Space+Grotesk:wght@400;700&amp;family=Tiro+Devanagari+Hindi&amp;display=swap');</style>
 ${p.art('p', ink)}
 </svg>`;
 }

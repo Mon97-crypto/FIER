@@ -25,6 +25,17 @@ Below the boutique: the offers counter (bundles, the Midnight Flash countdown, t
 | **Delivery tracking** | Confirmed → DTF Printing → Quality Check → Shipped → Out for Delivery → Delivered, shown as a timeline with an ETA, courier and AWB. Order IDs look like `RARE-261101-A1B2C3`. |
 | **Admin** (`/admin`) | Revenue and print-queue stats, order status, courier and AWB updates, **downloadable DTF print files** (12″×14.4″ SVG), subscriber CSV export. |
 
+## Collections
+
+The rail shows one collection at a time; the switcher at the top of the boutique swaps the display (the tees slide off and the new ones drop in, and the wall text and lighting change).
+
+| Collection | Designs | Edition |
+|---|---|---|
+| **Drop 01 · The Epic** | Kodanda, Lanka Dahan, Dashamukha, Rama Setu, Jatayu, Sanjeevani, Lakshman Rekha, Suryavanshi | 150 pieces each |
+| **The Lankeshwar Capsule** | Lankeshwar (royal crest), Ten Crowns (line art), The Scholar King (rudra veena), Pushpaka (flying chariot) | 99 pieces each |
+
+The Lankeshwar Capsule is original artwork inspired by Raavana of the Ramayana epic: gold-foil gradients and a worn vintage-print texture. It does not use any actor's likeness or the film's character design.
+
 ## Look & feel
 
 A warm gallery palette: plaster ivory `#f1ece4`, oak `#c69c6d`, espresso `#1d1611`, ember `#d2552f` and brass `#b8924f`, so the colourful tees pop the way they would in a real boutique. Type is Fraunces (editorial serif), Manrope (UI) and Mrs Saint Delafield (Sathish's signature).

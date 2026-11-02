@@ -260,6 +260,28 @@ em { font-style: italic; }
 .store[data-view="rail"] .rail-arrow { opacity: 1; pointer-events: auto; }
 .store[data-view="focus"] .rail-arrow.prev { opacity: 1; pointer-events: auto; }
 
+/* collection switcher */
+.collections { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); z-index: 6; display: flex; gap: 4px; padding: 5px; border-radius: 999px;
+  background: rgba(251, 248, 243, .82); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,.85); box-shadow: 0 14px 30px -18px rgba(40,25,10,.6); }
+.collections button { display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 700; color: var(--muted); white-space: nowrap; transition: background .25s, color .25s; }
+.collections button small { font-size: 11px; opacity: .6; }
+.collections button .new { padding: 2px 7px; border-radius: 999px; font-size: 10px; letter-spacing: .5px; text-transform: uppercase; background: linear-gradient(160deg, #f4dfaa, #c9a55e); color: #3a2a12; }
+.collections button[aria-pressed="true"] { background: var(--espresso); color: var(--cream); }
+.collections button[aria-pressed="true"] small { opacity: .7; }
+.store[data-view="focus"] .collections { opacity: 0; pointer-events: none; }
+.collections { transition: opacity .4s; }
+
+/* garments swapping when the collection changes */
+.garment.leaving { opacity: 0 !important; transition: opacity .35s; }
+.garment.leaving .g-flip { transform: translateY(-40px) !important; transition: transform .35s var(--ease); }
+.garment.arriving { opacity: 0; }
+.garment.arriving .g-flip { transform: translateY(-60px); }
+.garment .g-flip { transition: transform .7s var(--ease); }
+
+/* the Lankeshwar capsule: warmer, golden lighting on the wall */
+.viewport[data-collection="lankeshwar"] .pool { background: radial-gradient(ellipse at 50% 8%, rgba(255, 226, 170, .95), rgba(255, 196, 120, .35) 35%, transparent 65%); }
+.viewport[data-collection="lankeshwar"] .wmk-top { color: #9a6b1e; }
+
 /* product panel */
 .pdp { position: absolute; z-index: 7; top: 18px; right: 18px; bottom: 84px; width: min(420px, 40vw); border-radius: 26px; overflow: hidden;
   background: rgba(251, 248, 243, .9); backdrop-filter: blur(20px) saturate(1.2); -webkit-backdrop-filter: blur(20px) saturate(1.2); border: 1px solid rgba(255,255,255,.9);
@@ -529,6 +551,8 @@ blockquote { margin: 0 0 22px; font-family: var(--serif); font-style: italic; fo
   .toast { top: calc(74px + env(safe-area-inset-top, 0px)); bottom: auto; transform: translate(-50%, -200%); }
   .toast.show { transform: translate(-50%, 0); }
   .store-caption { display: none; }
+  .collections { top: 10px; }
+  .collections button { padding: 7px 11px; font-size: 12.5px; }
   .pills { bottom: calc(14px + env(safe-area-inset-bottom, 0px)); width: max-content; max-width: calc(100% - 16px); overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
   .pills::-webkit-scrollbar { display: none; }
   .pills button { padding: 8px 12px; font-size: 12.5px; }

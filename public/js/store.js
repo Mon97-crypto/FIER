@@ -1,12 +1,13 @@
 // Rare Collections — walk-in virtual boutique built with pure CSS 3D.
 // World units are CSS px. Back wall at z = 0, floor at y = 0 (y grows downward), room opens toward +z.
-import { PRODUCTS, TEE_COLORS } from './catalog.js';
+import { PRODUCTS, TEE_COLORS, COLLECTIONS, productsIn } from './catalog.js';
 import { BUNDLES, inr } from './pricing.js';
 import { teeSVG, foldedSVG, printArtSVG } from './tee.js';
 
 const W = 3400, H = 1500, D = 2500;
 const RAIL_Y = -1000, RAIL_Z = 70;
 const GW = 360, GH = (GW * 640) / 500, GAP = 390;
+const RAIL_SLOTS = 8; // the wall rail is built for the largest collection
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 // Phones/tablets (and every iOS browser, which is WebKit) get lighter garments: SVG filters are
 // expensive to rasterise there and iOS caps graphics memory per tab.
@@ -83,19 +84,20 @@ ${[[80,200,-40],[230,170,30],[110,100,-25],[150,120,5],[60,260,-60],[240,250,50]
 <path d="M88,380 L212,380 L198,510 Q150,520 102,510Z" fill="url(#pot)"/><rect x="82" y="372" width="136" height="16" rx="4" fill="#d9cfc0"/></svg>`;
 
 export class Boutique {
-  constructor({ viewport, camera, room, onFocus, onBlur, onView, onBundle, onFounder }) {
-    Object.assign(this, { viewport, camera, room, onFocus, onBlur, onView, onBundle, onFounder });
-    this.colors = PRODUCTS.map((p) => p.colors[0]);
-    this.fits = PRODUCTS.map(() => 'men');
+  constructor({ viewport, camera, room, onFocus, onBlur, onView, onBundle, onFounder, onCollection }) {
+    Object.assign(this, { viewport, camera, room, onFocus, onBlur, onView, onBundle, onFounder, onCollection });
+    this.colorOf = Object.fromEntries(PRODUCTS.map((p) => [p.id, p.colors[0]]));
+    this.fitOf = Object.fromEntries(PRODUCTS.map((p) => [p.id, 'men']));
+    this.collection = COLLECTIONS[0].id;
+    this.items = productsIn(this.collection);
     this.view = 'intro';
     viewport.classList.toggle('lite', LITE);
     this.focusIndex = -1;
     this.hover = -1;
-    this.railX = PRODUCTS.length > 1 ? -GAP * 1.5 : 0;
+    this.railX = this.gx(Math.min(2, this.items.length - 1));
     this.cur = { x: 0, y: -760, z: 4300, yaw: 0, pitch: 0 };
     this.target = { ...this.cur };
     this.prevX = this.cur.x;
-    this.swing = PRODUCTS.map((_, i) => ({ a: (i % 2 ? 1 : -1) * 1.5, w: 0 }));
     this.build();
     this.bind();
     this.resize();
@@ -103,7 +105,13 @@ export class Boutique {
     requestAnimationFrame(() => this.tick());
   }
 
-  gx(i) { return (i - (PRODUCTS.length - 1) / 2) * GAP; }
+  // per-item colour / fit (index into the active collection)
+  get colors() { return this.items.map((p) => this.colorOf[p.id]); }
+  get fits() { return this.items.map((p) => this.fitOf[p.id]); }
+  // small capsules get gallery spacing; full drops use the standard gap
+  get gap() { return this.items.length <= 4 ? 640 : GAP; }
+  gx(i) { return (i - (this.items.length - 1) / 2) * this.gap; }
+  indexAt(x) { return clamp(Math.round(x / this.gap + (this.items.length - 1) / 2), 0, this.items.length - 1); }
   get portrait() { return innerWidth / innerHeight < 0.9; }
 
   resize() {
@@ -147,31 +155,18 @@ export class Boutique {
     }
 
     // wordmark + neon on the back wall
-    add(place(el('wall-mark', `<p class="wmk-top">Drop 01 · Ramayana: Part 1</p><div class="wmk"><span class="wmk-rare">Rare</span><span class="wmk-col"><em>Collections</em><b>by Sathish</b></span></div>`), { y: -1290, z: 2, w: 1700, h: 300 }));
+    add(place(el('wall-mark', `<p class="wmk-top" id="wmkTop">${esc(COLLECTIONS[0].wall)}</p><div class="wmk"><span class="wmk-rare">Rare</span><span class="wmk-col"><em>Collections</em><b>by Sathish</b></span></div>`), { y: -1290, z: 2, w: 1700, h: 300 }));
     add(place(el('neon', '<span>Fear none.</span><i>Burn bright.</i>'), { x: -1260, y: -1270, z: 4, w: 520, h: 210 }));
     add(place(el('badge-disc', `<span>No.</span><b>01</b><small>Limited<br/>150 pcs</small>`), { x: 1380, y: -1290, z: 3, w: 170, h: 170 }));
 
     // rail (segmented) with wall brackets
-    const railW = GAP * PRODUCTS.length + 260;
+    const railW = GAP * RAIL_SLOTS + 260;
     for (let k = 0; k < 4; k++) this.cull.push(add(place(el('rail'), { x: -railW / 2 + (railW / 4) * (k + 0.5), y: RAIL_Y, z: RAIL_Z, w: railW / 4 + 1, h: 14 })));
-    for (const x of [-(GAP * PRODUCTS.length) / 2 - 90, (GAP * PRODUCTS.length) / 2 + 90, 0])
+    for (const x of [-(GAP * RAIL_SLOTS) / 2 - 90, (GAP * RAIL_SLOTS) / 2 + 90, 0])
       add(place(el('bracket'), { x, y: RAIL_Y, z: RAIL_Z / 2, ry: 90, w: RAIL_Z, h: 12 }));
 
-    // garments
-    this.garments = PRODUCTS.map((p, i) => {
-      const g = el('garment', `<div class="g-swing"><div class="g-flip"><div class="g-face front">${teeSVG({ product: p, color: this.colors[i], fit: this.fits[i], detail: DETAIL })}</div><div class="g-face back"></div></div></div>`);
-      g.dataset.i = i;
-      g.setAttribute('role', 'button');
-      g.setAttribute('aria-label', `${p.name} tee, ${inr(499)}`);
-      g.tabIndex = -1;
-      add(place(g, { x: this.gx(i), y: RAIL_Y - 18 + GH / 2, z: RAIL_Z, w: GW, h: GH }));
-      g._base = { x: this.gx(i), y: RAIL_Y - 18 + GH / 2, z: RAIL_Z };
-      const label = add(place(el('g-label', `<b>${esc(p.name)}</b><span>${esc(p.tagline)} · ${inr(499)}</span>`), { x: this.gx(i), y: RAIL_Y + GH + 40, z: 6, w: 360, h: 60 }));
-      g._label = label;
-      return g;
-    });
-    this.swingEls = this.garments.map((g) => g.querySelector('.g-swing'));
-    this.cull.push(...this.garments, ...this.garments.map((g) => g._label));
+    this.shellCull = this.cull.slice();
+    this.buildRail();
 
     // center plinth with folded stacks (Tee of the Day)
     add(place(el('floor-shadow'), { y: -2, z: 1350, rx: 90, w: 1150, h: 520, k: 4 }));
@@ -179,7 +174,7 @@ export class Boutique {
     [[-300, 0], [0, 1], [300, 2]].forEach(([x, k]) => {
       const p = PRODUCTS[(k * 3 + 1) % PRODUCTS.length];
       const stack = el('stack', [0, 1, 2].map((j) => `<div class="fold" style="--j:${j}">${foldedSVG({ product: p, color: p.colors[j % p.colors.length] })}</div>`).join(''));
-      stack.dataset.i = PRODUCTS.indexOf(p);
+      stack.dataset.pid = p.id;
       add(place(stack, { x, y: -190 - 62, z: 1400, w: 260, h: 150 }));
     });
 
@@ -207,6 +202,63 @@ export class Boutique {
     // plants
     add(place(el('plant', PLANT), { x: W / 2 - 230, y: -300, z: 240, w: 340, h: 600 }));
     add(place(el('plant', PLANT), { x: -W / 2 + 230, y: -300, z: 240, w: 340, h: 600 }));
+  }
+
+  // ---------- the rail (one collection at a time) ----------
+  buildRail() {
+    const add = (e) => (this.room.appendChild(e), e);
+    this.garments = this.items.map((p, i) => {
+      const g = el('garment', `<div class="g-swing"><div class="g-flip"><div class="g-face front">${teeSVG({ product: p, color: this.colorOf[p.id], fit: this.fitOf[p.id], detail: DETAIL })}</div><div class="g-face back"></div></div></div>`);
+      g.dataset.i = i;
+      g.setAttribute('role', 'button');
+      g.setAttribute('aria-label', `${p.name} tee, ${inr(499)}`);
+      g.tabIndex = -1;
+      add(place(g, { x: this.gx(i), y: RAIL_Y - 18 + GH / 2, z: RAIL_Z, w: GW, h: GH }));
+      g._label = add(place(el('g-label', `<b>${esc(p.name)}</b><span>${esc(p.tagline)} · ${inr(499)}</span>`), { x: this.gx(i), y: RAIL_Y + GH + 40, z: 6, w: 360, h: 60 }));
+      return g;
+    });
+    this.swingEls = this.garments.map((g) => g.querySelector('.g-swing'));
+    this.swing = this.items.map((_, i) => ({ a: (i % 2 ? 1 : -1) * 1.5, w: 0 }));
+    this.cull = [...this.shellCull, ...this.garments, ...this.garments.map((g) => g._label)];
+    this.hover = -1;
+  }
+
+  setCollection(id) {
+    if (id === this.collection || this.switching) return;
+    const c = COLLECTIONS.find((x) => x.id === id);
+    if (!c) return;
+    this.switching = true;
+    if (this.view === 'focus') this.setView('rail');
+    const old = this.garments;
+    old.forEach((g, k) => setTimeout(() => g.classList.add('leaving'), k * 40));
+    setTimeout(() => {
+      old.forEach((g) => (g._label.remove(), g.remove()));
+      this.collection = id;
+      this.items = productsIn(id);
+      this.viewport.dataset.collection = id;
+      const top = this.room.querySelector('#wmkTop');
+      if (top) top.textContent = c.wall;
+      this.buildRail();
+      this.garments.forEach((g, k) => {
+        g.classList.add('arriving');
+        setTimeout(() => g.classList.remove('arriving'), 60 + k * 70);
+        this.swing[k].w += (k % 2 ? 1 : -1) * 1.2;
+      });
+      this.railX = this.gx(Math.min(1, this.items.length - 1));
+      if (this.view === 'rail' || this.view === 'store') this.setView('rail');
+      this.switching = false;
+      this.onCollection?.(c);
+    }, 420 + old.length * 40);
+  }
+
+  // open any product, switching the rail to its collection first if needed
+  focusProduct(id) {
+    const p = PRODUCTS.find((x) => x.id === id);
+    if (!p) return;
+    const open = () => this.focus(this.items.findIndex((x) => x.id === id));
+    if (p.collection === this.collection) return open();
+    this.setCollection(p.collection);
+    setTimeout(open, 900);
   }
 
   // ---------- camera views ----------
@@ -238,7 +290,7 @@ export class Boutique {
   }
 
   focus(i) {
-    i = (i + PRODUCTS.length) % PRODUCTS.length;
+    i = (i + this.items.length) % this.items.length;
     if (this.focusIndex >= 0) this.garments[this.focusIndex].classList.remove('focused', 'flipped');
     this.focusIndex = i;
     this.railX = this.gx(i);
@@ -249,29 +301,31 @@ export class Boutique {
   }
 
   browse(dx) {
-    this.railX = clamp(this.railX + dx, this.gx(0), this.gx(PRODUCTS.length - 1));
+    this.railX = clamp(this.railX + dx, this.gx(0), this.gx(this.items.length - 1));
     if (this.view === 'rail') this.target.x = this.railX;
   }
   step(dir) {
     if (this.view === 'focus') return this.focus(this.focusIndex + dir);
     if (this.view !== 'rail') this.setView('rail');
-    const i = clamp(Math.round(this.railX / GAP + (PRODUCTS.length - 1) / 2) + dir, 0, PRODUCTS.length - 1);
+    const i = clamp(this.indexAt(this.railX) + dir, 0, this.items.length - 1);
     this.railX = this.gx(i);
     this.target.x = this.railX;
   }
 
   restyle(i, { color, fit }) {
-    if (color) this.colors[i] = color;
-    if (fit) this.fits[i] = fit;
+    const p = this.items[i];
+    if (color) this.colorOf[p.id] = color;
+    if (fit) this.fitOf[p.id] = fit;
     const g = this.garments[i];
-    g.querySelector('.g-face.front').innerHTML = teeSVG({ product: PRODUCTS[i], color: this.colors[i], fit: this.fits[i], detail: DETAIL });
+    g.querySelector('.g-face.front').innerHTML = teeSVG({ product: p, color: this.colorOf[p.id], fit: this.fitOf[p.id], detail: DETAIL });
     g.querySelector('.g-face.back').innerHTML = '';
     if (g.classList.contains('flipped')) this.flip(i, true);
   }
   flip(i, force) {
     const g = this.garments[i];
     const back = g.querySelector('.g-face.back');
-    if (!back.innerHTML) back.innerHTML = teeSVG({ product: PRODUCTS[i], color: this.colors[i], fit: this.fits[i], view: 'back', detail: DETAIL });
+    const p = this.items[i];
+    if (!back.innerHTML) back.innerHTML = teeSVG({ product: p, color: this.colorOf[p.id], fit: this.fitOf[p.id], view: 'back', detail: DETAIL });
     g.classList.toggle('flipped', force ?? !g.classList.contains('flipped'));
     return g.classList.contains('flipped');
   }
@@ -318,7 +372,7 @@ export class Boutique {
         if (this.view === 'rail' || this.view === 'focus') this.focus(i);
         else { this.railX = this.gx(i); this.setView('rail'); }
       } else if (stack) {
-        this.focus(+stack.dataset.i);
+        this.focusProduct(stack.dataset.pid);
       } else if (cubby) {
         this.onBundle?.(+cubby.dataset.bundle);
       } else if (t.closest?.('.rail, .bracket, .wall.back') && this.view === 'store') {
@@ -355,7 +409,7 @@ export class Boutique {
         return;
       }
       if (this.view === 'rail') {
-        const atEnd = this.railX >= this.gx(PRODUCTS.length - 1) - 1 && d > 0;
+        const atEnd = this.railX >= this.gx(this.items.length - 1) - 1 && d > 0;
         const atStart = this.railX <= this.gx(0) + 1 && d < 0;
         if (atEnd && now > wheelLock) return; // let the page scroll on
         e.preventDefault();
@@ -371,7 +425,7 @@ export class Boutique {
       if (e.key === 'ArrowRight') { this.step(1); e.preventDefault(); }
       if (e.key === 'ArrowLeft') { this.step(-1); e.preventDefault(); }
       if (e.key === 'Escape') this.setView(this.view === 'focus' ? 'rail' : 'store');
-      if (e.key === 'Enter' && this.view === 'rail') this.focus(Math.round(this.railX / GAP + (PRODUCTS.length - 1) / 2));
+      if (e.key === 'Enter' && this.view === 'rail') this.focus(this.indexAt(this.railX));
     });
   }
 

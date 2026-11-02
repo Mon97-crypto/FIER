@@ -47,7 +47,7 @@ function backArt(u, ink, product) {
 <text x="200" y="300" text-anchor="middle" font-family="Fraunces, Georgia, serif" font-style="italic" font-size="62" fill="none" stroke="${ink}" stroke-width="1.4">Fear none.</text>
 <text x="200" y="372" text-anchor="middle" font-family="Fraunces, Georgia, serif" font-weight="900" font-size="60" fill="url(#${u}bg)">Burn bright.</text>
 <text x="200" y="420" text-anchor="middle" font-family="'Tiro Devanagari Hindi', serif" font-size="24" fill="${c1}">${product.deva}</text>
-<text x="200" y="460" text-anchor="middle" font-family="Manrope, sans-serif" font-size="11" letter-spacing="3" fill="${ink}" opacity=".7">NO. ${String(product.no).padStart(2, '0')} · LIMITED TO 150 PIECES</text>`;
+<text x="200" y="460" text-anchor="middle" font-family="Manrope, sans-serif" font-size="11" letter-spacing="3" fill="${ink}" opacity=".7">NO. ${String(product.no).padStart(2, '0')} · LIMITED TO ${product.edition || 150} PIECES</text>`;
 }
 
 function hangerParts(u) {
@@ -88,6 +88,8 @@ export function teeSVG({ product, color, fit = 'men', view = 'front', className 
 <radialGradient id="${u}top" cx=".45" cy="0" r="1"><stop offset="0" stop-color="#fff" stop-opacity="${c.dark ? 0.12 : 0.3}"/><stop offset=".55" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="${c.dark ? 0.25 : 0.12}"/></radialGradient>
 ${hi ? `<filter id="${u}blur" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="9"/></filter>
 <filter id="${u}warp" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.008 0.02" numOctaves="2" seed="${product.no || 3}"/><feDisplacementMap in="SourceGraphic" scale="6" xChannelSelector="R" yChannelSelector="G"/></filter>
+${product.distress ? `<filter id="${u}wear" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.55" numOctaves="3" seed="${(product.no || 1) * 7}"/><feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -14 5.05"/></filter>
+<mask id="${u}worn" maskUnits="userSpaceOnUse" x="0" y="-20" width="500" height="640"><rect x="0" y="-20" width="500" height="640" fill="#fff"/><rect x="0" y="-20" width="500" height="640" filter="url(#${u}wear)"/></mask>` : ''}
 <filter id="${u}grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="11" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="table" tableValues="0 ${lum > 0.5 ? 0.14 : 0.2}"/></feComponentTransfer></filter>` : ''}
 </defs>
 ${hanger ? h.hook : ''}
@@ -95,7 +97,7 @@ ${hanger ? h.hook : ''}
 <path d="${s.neckIn}" fill="${shade(c.hex, -0.2)}"/>
 ${hanger ? `<g clip-path="url(#${u}neck)">${h.wood}</g>` : ''}
 <g clip-path="url(#${u}clip)">
-  <g ${hi ? `filter="url(#${u}warp)"` : ''}><svg x="${pa.x}" y="${pa.y}" width="${pa.w}" height="${pa.h}" viewBox="0 0 400 480" opacity=".95">${art}</svg></g>
+  <g ${hi ? `filter="url(#${u}warp)"` : ''} ${hi && product.distress && front ? `mask="url(#${u}worn)"` : ''}><svg x="${pa.x}" y="${pa.y}" width="${pa.w}" height="${pa.h}" viewBox="0 0 400 480" opacity=".95">${art}</svg></g>
   <g fill="none" stroke-linecap="round" ${hi ? `filter="url(#${u}blur)"` : 'opacity=".6"'}>
     ${s.folds.dark.map((d) => `<path d="${d}" stroke="#000" stroke-opacity="${darkFold}" stroke-width="22"/>`).join('')}
     ${s.folds.light.map((d) => `<path d="${d}" stroke="#fff" stroke-opacity="${lightFold}" stroke-width="18"/>`).join('')}

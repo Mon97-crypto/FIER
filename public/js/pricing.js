@@ -36,6 +36,7 @@ export const SPIN_REWARDS = [
 ];
 
 export const TICKER = [
+  'New: The Lankeshwar Capsule · 4 gold-foil designs · only 99 pieces each',
   'Drop 01 · Ramayana: Part 1 · each design limited to 150 pieces',
   'Every tee ₹499 · DTF printed · S to XL · men & women',
   'Duo: any 2 for ₹899',
