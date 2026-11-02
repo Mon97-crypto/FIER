@@ -2,12 +2,14 @@
 // World units are CSS px. Back wall at z = 0, floor at y = 0 (y grows downward), room opens toward +z.
 import { PRODUCTS, TEE_COLORS, COLLECTIONS, productsIn } from './catalog.js';
 import { BUNDLES, inr } from './pricing.js';
-import { teeSVG, foldedSVG, printArtSVG } from './tee.js';
+import { teeSVG, foldedSVG, printArtSVG, photoTee } from './tee.js';
 
 const W = 3400, H = 1500, D = 2500;
 const RAIL_Y = -1000, RAIL_Z = 70;
 const GW = 360, GH = (GW * 640) / 500, GAP = 390;
 const RAIL_SLOTS = 8; // the wall rail is built for the largest collection
+const DRAWN = PRODUCTS.filter((p) => p.art); // products with vector art (folded stacks, prints)
+const face = (p, color, fit, view = 'front') => (p.photo ? photoTee({ product: p, view }) : teeSVG({ product: p, color, fit, view, detail: DETAIL }));
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 // Phones/tablets (and every iOS browser, which is WebKit) get lighter garments: SVG filters are
 // expensive to rasterise there and iOS caps graphics memory per tab.
@@ -172,7 +174,7 @@ export class Boutique {
     add(place(el('floor-shadow'), { y: -2, z: 1350, rx: 90, w: 1150, h: 520, k: 4 }));
     add(place(el('table', '<div class="table-top"></div><div class="table-front"><span>Folded · Ready to ship</span></div>'), { y: -95, z: 1420, w: 980, h: 190 }));
     [[-300, 0], [0, 1], [300, 2]].forEach(([x, k]) => {
-      const p = PRODUCTS[(k * 3 + 1) % PRODUCTS.length];
+      const p = DRAWN[(k * 3 + 1) % DRAWN.length];
       const stack = el('stack', [0, 1, 2].map((j) => `<div class="fold" style="--j:${j}">${foldedSVG({ product: p, color: p.colors[j % p.colors.length] })}</div>`).join(''));
       stack.dataset.pid = p.id;
       add(place(stack, { x, y: -190 - 62, z: 1400, w: 260, h: 150 }));
@@ -181,7 +183,7 @@ export class Boutique {
     // right wall: oak shelving = bundles
     const shelf = el('shelving', BUNDLES.map((b) => `
       <div class="cubby" data-bundle="${b.qty}">
-        <div class="cubby-stack">${Array.from({ length: b.qty }, (_, j) => { const p = PRODUCTS[(j * 2 + b.qty) % PRODUCTS.length]; return `<div class="fold" style="--j:${j}">${foldedSVG({ product: p, color: p.colors[0] })}</div>`; }).join('')}</div>
+        <div class="cubby-stack">${Array.from({ length: b.qty }, (_, j) => { const p = DRAWN[(j * 2 + b.qty) % DRAWN.length]; return `<div class="fold" style="--j:${j}">${foldedSVG({ product: p, color: p.colors[0] })}</div>`; }).join('')}</div>
       </div>`).join('') + BUNDLES.map((b) => `
       <div class="cubby price" data-bundle="${b.qty}">
         <div class="brass"><small>${esc(b.name)}</small><b>${inr(b.price)}</b><span>${b.qty > 1 ? `${b.qty} tees · save ${inr(b.qty * 499 - b.price)}` : 'one tee'}</span></div>
@@ -196,7 +198,7 @@ export class Boutique {
     add(place(el('plaque', `<b>Sathish</b><span>Founder · Rare Collections</span><em>Click to read his story →</em>`), { x: -W / 2 + 10, y: -440, z: 950, ry: 90, w: 380, h: 110 }));
     founder.addEventListener('click', () => this.onFounder?.());
     [[2150, -980, 0], [2150, -560, 4]].forEach(([z, y, k]) =>
-      add(place(el('frame small', `<div class="mat">${printArtSVG(PRODUCTS[k])}</div>`), { x: -W / 2 + 12, y, z, ry: 90, w: 300, h: 360 })),
+      add(place(el('frame small', `<div class="mat">${printArtSVG(DRAWN[k])}</div>`), { x: -W / 2 + 12, y, z, ry: 90, w: 300, h: 360 })),
     );
 
     // plants
@@ -208,7 +210,7 @@ export class Boutique {
   buildRail() {
     const add = (e) => (this.room.appendChild(e), e);
     this.garments = this.items.map((p, i) => {
-      const g = el('garment', `<div class="g-swing"><div class="g-flip"><div class="g-face front">${teeSVG({ product: p, color: this.colorOf[p.id], fit: this.fitOf[p.id], detail: DETAIL })}</div><div class="g-face back"></div></div></div>`);
+      const g = el('garment', `<div class="g-swing"><div class="g-flip"><div class="g-face front">${face(p, this.colorOf[p.id], this.fitOf[p.id])}</div><div class="g-face back"></div></div></div>`);
       g.dataset.i = i;
       g.setAttribute('role', 'button');
       g.setAttribute('aria-label', `${p.name} tee, ${inr(499)}`);
@@ -317,7 +319,7 @@ export class Boutique {
     if (color) this.colorOf[p.id] = color;
     if (fit) this.fitOf[p.id] = fit;
     const g = this.garments[i];
-    g.querySelector('.g-face.front').innerHTML = teeSVG({ product: p, color: this.colorOf[p.id], fit: this.fitOf[p.id], detail: DETAIL });
+    g.querySelector('.g-face.front').innerHTML = face(p, this.colorOf[p.id], this.fitOf[p.id]);
     g.querySelector('.g-face.back').innerHTML = '';
     if (g.classList.contains('flipped')) this.flip(i, true);
   }
@@ -325,7 +327,7 @@ export class Boutique {
     const g = this.garments[i];
     const back = g.querySelector('.g-face.back');
     const p = this.items[i];
-    if (!back.innerHTML) back.innerHTML = teeSVG({ product: p, color: this.colorOf[p.id], fit: this.fitOf[p.id], view: 'back', detail: DETAIL });
+    if (!back.innerHTML) back.innerHTML = face(p, this.colorOf[p.id], this.fitOf[p.id], 'back');
     g.classList.toggle('flipped', force ?? !g.classList.contains('flipped'));
     return g.classList.contains('flipped');
   }

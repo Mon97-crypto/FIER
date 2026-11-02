@@ -152,3 +152,15 @@ export function printArtSVG(product, paper = '#141414') {
   const ink = paper === '#141414' ? '#ffffff' : '#141414';
   return `<svg viewBox="0 0 400 480" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="400" height="480" fill="${paper}"/>${product.art(u, ink)}</svg>`;
 }
+
+/** Real photographed tee (Studio Series). On the rail we use the background-free cut-out and
+ *  add a hanger hook above the collar; elsewhere the full studio photo is used. */
+export function photoTee({ product, view = 'front', cut = true, hanger = true, className = '' }) {
+  const ph = product.photo;
+  const back = view === 'back' && ph.back;
+  const src = cut ? (back ? ph.cutBack : ph.cut) : back ? ph.back : ph.front;
+  const hook = hanger
+    ? `<svg class="photo-hook" viewBox="0 0 60 70" aria-hidden="true"><defs><linearGradient id="phk" x1="0" x2="1"><stop offset="0" stop-color="#6f6a63"/><stop offset=".4" stop-color="#f4f1ea"/><stop offset=".6" stop-color="#b8b2a8"/><stop offset="1" stop-color="#5d5852"/></linearGradient></defs><path d="M30,70 L30,40 C30,24 52,20 52,8 C52,-6 32,-10 24,2" fill="none" stroke="url(#phk)" stroke-width="5" stroke-linecap="round"/></svg>`
+    : '';
+  return `<div class="photo-tee ${className}">${hook}<img src="${src}" alt="${product.name} oversized tee, ${back ? 'back' : 'front'}" loading="lazy" decoding="async" draggable="false"/></div>`;
+}

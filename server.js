@@ -264,7 +264,7 @@ function validateItems(items) {
   const clean = items.map((i) => {
     const p = getProduct(i.productId);
     if (!p) throw new HttpError(400, 'Unknown design in cart.');
-    if (!FITS[i.fit]) throw new HttpError(400, 'Pick a fit (men / women).');
+    if (!FITS[i.fit] || (p.fits && !p.fits.includes(i.fit))) throw new HttpError(400, `${p.name} is available in ${(p.fits || Object.keys(FITS)).join(' / ')} fit.`);
     if (!SIZES.includes(i.size)) throw new HttpError(400, 'Pick a size (S, M, L, XL).');
     if (!p.colors.includes(i.color)) throw new HttpError(400, `${p.name} isn't available in that colour.`);
     const qty = Number(i.qty);
@@ -316,7 +316,8 @@ function nextMidnightIST() {
 }
 function teeOfTheDay() {
   const day = Math.floor((Date.now() + 5.5 * 3600_000) / 864e5);
-  return PRODUCTS[day % PRODUCTS.length].id;
+  const drawn = PRODUCTS.filter((p) => p.art);
+  return drawn[day % drawn.length].id;
 }
 
 const spinLog = new Map();

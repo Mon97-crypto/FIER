@@ -22,6 +22,9 @@ export const TEE_COLORS = {
   rust: { name: 'Burnt Rust', hex: '#8a3a1e', dark: true },
   sand: { name: 'Desert Sand', hex: '#e3d5bc', dark: false },
   sky: { name: 'Monsoon Sky', hex: '#b8cce2', dark: false },
+  'acid-royal': { name: 'Acid-Wash Royal Blue', hex: '#2c3ea8', dark: true },
+  'acid-violet': { name: 'Acid-Wash Violet', hex: '#7a35c4', dark: true },
+  saffron: { name: 'Saffron Sun', hex: '#f47a1f', dark: true },
 };
 export const BRAND = { name: 'Rare Collections', by: 'by Sathish', ethos: 'Fear None. Burn Bright.', edition: 150 };
 
@@ -644,6 +647,25 @@ export const PRODUCTS = [
     palette: ['#e8c25a', '#ff7a2e', '#7a0f1d'], colors: ['black', 'navy', 'sand'], art: pushpaka, edition: 99, distress: true,
     story: 'The legendary flying chariot of Lanka: a golden vimana on swan wings, sailing above the clouds into a burning sunset. For anyone who refuses to stay grounded.',
   },
+  // ---- Studio Series: real photographed oversized tees (photo products, no vector art) ----
+  {
+    id: 'agni-astra', collection: 'studio', name: 'Agni Astra', deva: 'अग्नि अस्त्र', tagline: 'The Archer Of Ayodhya', tag: 'Studio',
+    palette: ['#2c3ea8', '#ff7a2e', '#e8c25a'], colors: ['acid-royal'], fits: ['oversized'], fit: 'oversized',
+    photo: { front: '/img/studio/agni-astra.webp', cut: '/img/studio/agni-astra-cut.webp' },
+    story: 'A warrior-prince draws a fire-tipped arrow against a golden mandala. Full-front print on a heavyweight acid-washed royal blue tee with a ribbed crew collar.',
+  },
+  {
+    id: 'lanka-ablaze', collection: 'studio', name: 'Lanka Ablaze', deva: 'लंका दहन', tagline: 'The Golden City Burns', tag: 'Studio',
+    palette: ['#7a35c4', '#ff4f8b', '#f2b84b'], colors: ['acid-violet'], fits: ['oversized'], fit: 'oversized',
+    photo: { front: '/img/studio/lanka-ablaze.webp', cut: '/img/studio/lanka-ablaze-cut.webp' },
+    story: 'The towers of golden Lanka wrapped in pink-and-gold fire under a sky of sparks. Oversized acid-washed violet with a big, bold front print.',
+  },
+  {
+    id: 'sankat-mochan', collection: 'studio', name: 'Sankat Mochan', deva: 'संकट मोचन', tagline: 'Lift The Mountain', tag: 'Studio · Front & Back',
+    palette: ['#f47a1f', '#7a1f6b', '#e8c25a'], colors: ['saffron'], fits: ['oversized'], fit: 'oversized',
+    photo: { front: '/img/studio/sankat-mochan-front.webp', back: '/img/studio/sankat-mochan-back.webp', cut: '/img/studio/sankat-mochan-front-cut.webp', cutBack: '/img/studio/sankat-mochan-back-cut.webp', film: '/img/studio/sankat-mochan-film.mp4', poster: '/img/studio/sankat-mochan-film-poster.jpg' },
+    story: 'Front: the mighty one mid-stride, mace raised, sun blazing in his palm. Back: the flight to the Sanjeevani mountain above golden clouds. Saffron oversized tee, printed both sides.',
+  },
   // ---- Drop 02 · Street Epics (oversized streetwear) ----
   {
     id: 'vanara-tour', collection: 'street', name: 'Vanara Sena World Tour', deva: 'वानर सेना', tagline: 'No Ships. One Bridge.', tag: 'Tour Tee',
@@ -665,6 +687,7 @@ export const PRODUCTS = [
 export const COLLECTIONS = [
   { id: 'epic', name: 'Drop 01 · The Epic', short: 'The Epic', wall: 'Drop 01 · Ramayana: Part 1', edition: 150 },
   { id: 'lankeshwar', name: 'The Lankeshwar Capsule', short: 'Lankeshwar', wall: 'The Lankeshwar Capsule · Ten crowns. One throne.', edition: 99, isNew: true },
+  { id: 'studio', name: 'Studio Series', short: 'Studio', wall: 'The Studio Series · Real oversized tees', edition: 150, isNew: true },
   { id: 'street', name: 'Drop 02 · Street Epics', short: 'Street Epics', wall: 'Drop 02 · Street Epics · Oversized', edition: 150, isNew: true },
 ];
 PRODUCTS.forEach((p) => {
@@ -679,7 +702,7 @@ export const getProduct = (id) => PRODUCTS.find((p) => p.id === id);
 /** Standalone, print-ready SVG for DTF production (transparent background, 12" × 14.4"). */
 export function printFileSVG(productId, colorKey, side = 'front') {
   const p = getProduct(productId);
-  if (!p) return null;
+  if (!p || !p.art) return null;
   const c = TEE_COLORS[colorKey] || TEE_COLORS.black;
   const ink = c.dark ? '#ffffff' : '#141414';
   return `<?xml version="1.0" encoding="UTF-8"?>

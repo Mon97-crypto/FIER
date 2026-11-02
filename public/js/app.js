@@ -2,7 +2,7 @@ import { PRODUCTS, SIZES, FITS, TEE_COLORS, SIZE_CHART, COLLECTIONS, productsIn,
 import { BUNDLES, UNIT_PRICE, SPIN_REWARDS, TICKER, computeTotals, inr } from './pricing.js';
 import { teeSVG } from './tee.js';
 import { Boutique } from './store.js';
-import { foldedSVG } from './tee.js';
+import { foldedSVG, photoTee } from './tee.js';
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -175,10 +175,10 @@ function renderPDP(i) {
     <p class="tagline">${esc(p.tagline)}</p>
     <div class="pdp-price"><b>${inr(UNIT_PRICE)}</b><span>or any 2 for ₹899 · 4 for ₹1,599</span></div>
     <span class="ltd">Limited edition · ${p.edition} pieces${state.totd === p.id ? ' · Tee of the day' : ''}</span>
-    <div class="opt"><div class="opt-label"><span>Colour <em>${TEE_COLORS[color].name}</em></span><button class="link" id="pdpFlip">${shop.garments[i].classList.contains('flipped') ? 'View front' : 'View back'}</button></div>
+    <div class="opt"><div class="opt-label"><span>Colour <em>${TEE_COLORS[color].name}</em></span>${!p.photo || p.photo.back ? `<button class="link" id="pdpFlip">${shop.garments[i].classList.contains('flipped') ? 'View front' : 'View back'}</button>` : ''}</div>
       <div class="swatches" role="radiogroup" aria-label="Colour">${p.colors.map((k) => `<button role="radio" aria-checked="${k === color}" aria-label="${TEE_COLORS[k].name}" title="${TEE_COLORS[k].name}" data-color="${k}" style="--sw:${TEE_COLORS[k].hex}"></button>`).join('')}</div></div>
     <div class="opt"><div class="opt-label">Fit</div>
-      <div class="seg" role="radiogroup" aria-label="Fit">${Object.entries(FITS).map(([k, f]) => `<button role="radio" aria-checked="${k === fit}" data-fit="${k}">${f.label}<small>${f.sub}</small></button>`).join('')}</div></div>
+      <div class="seg" role="radiogroup" aria-label="Fit">${Object.entries(FITS).filter(([k]) => !p.fits || p.fits.includes(k)).map(([k, f]) => `<button role="radio" aria-checked="${k === fit}" data-fit="${k}">${f.label}<small>${f.sub}</small></button>`).join('')}</div></div>
     <p class="pdp-story">${esc(p.story)}</p>
     <ul class="pdp-specs"><li>DTF print: vivid, soft-hand, stretch-safe</li><li>Premium combed cotton, ${fit === 'women' ? 'fitted women’s cut' : 'regular men’s fit'}</li><li>Free shipping on ₹799+ · COD available</li><li>7-day size exchange</li></ul>
     <div class="pdp-nav"><button data-nav="-1">← ${esc(list[(i + list.length - 1) % list.length].name)}</button><button data-nav="1">${esc(list[(i + 1) % list.length].name)} →</button></div>
@@ -252,7 +252,7 @@ function renderCart() {
     .map((i, idx) => {
       const p = getProduct(i.productId);
       return `<div class="ci" style="--p1:${p.palette[0]}">
-        <div class="thumb">${teeSVG({ product: p, color: i.color, fit: i.fit, detail: 'low' })}</div>
+        <div class="thumb">${p.photo ? photoTee({ product: p, cut: true, hanger: false }) : teeSVG({ product: p, color: i.color, fit: i.fit, detail: 'low' })}</div>
         <div><h5>${esc(p.name)}</h5><div class="sub">${FITS[i.fit].label} · ${i.size} · ${TEE_COLORS[i.color].name}</div>
           <div class="qty"><button data-dec="${idx}" aria-label="Decrease">−</button><output>${i.qty}</output><button data-inc="${idx}" aria-label="Increase">+</button></div></div>
         <div style="text-align:right"><div>${inr(UNIT_PRICE * i.qty)}</div><button class="rm" data-rm="${idx}">Remove</button></div>
@@ -294,7 +294,8 @@ function renderBundles() {
     const mrp = b.qty * UNIT_PRICE;
     const hot = b.qty === 4;
     const stack = Array.from({ length: b.qty }, (_, j) => {
-      const p = PRODUCTS[(j * 3 + b.qty) % PRODUCTS.length];
+      const drawn = PRODUCTS.filter((x) => x.art);
+      const p = drawn[(j * 3 + b.qty) % drawn.length];
       return `<div class="fold" style="--j:${j}">${foldedSVG({ product: p, color: p.colors[0] })}</div>`;
     }).join('');
     return `<div class="bundle ${hot ? 'hot' : ''}">
@@ -780,6 +781,68 @@ function revealOnScroll() {
   $$('.chapter').forEach((c) => io.observe(c));
 }
 
+// ---------------- Studio Series (real photographed tees) ----------------
+const ssSize = {};
+function renderStudioSeries() {
+  const list = productsIn('studio');
+  $('#ssGrid').innerHTML = list.map((p) => `
+    <article class="ss-card" data-id="${p.id}" style="--tint:${p.palette[0]}">
+      <div class="ss-photo ${p.photo.back ? 'has-back' : ''}" tabindex="0" aria-label="${esc(p.name)}${p.photo.back ? ', tap to see the back' : ''}">
+        <img class="front" src="${p.photo.front}" alt="${esc(p.name)} oversized tee, front" loading="lazy" decoding="async"/>
+        ${p.photo.back ? `<img class="back" src="${p.photo.back}" alt="${esc(p.name)} oversized tee, back" loading="lazy" decoding="async"/><span class="ss-flip">Front &amp; back</span>` : ''}
+        <span class="ss-tag">${esc(p.tag)}</span>
+      </div>
+      <div class="ss-info">
+        <div class="ss-title"><h3>${esc(p.name)}</h3><span class="deva">${esc(p.deva)}</span></div>
+        <p class="ss-tagline">${esc(p.tagline)} · ${esc(TEE_COLORS[p.colors[0]].name)}</p>
+        <p class="ss-story">${esc(p.story)}</p>
+        <div class="ss-buy">
+          <div class="sizes" role="radiogroup" aria-label="Size for ${esc(p.name)}">${SIZES.map((z) => `<button role="radio" aria-checked="false" data-ss-size="${z}">${z}</button>`).join('')}</div>
+          <div class="row gap">
+            <button class="btn primary grow" data-ss-add="${p.id}">Add to bag · ${inr(UNIT_PRICE)}</button>
+            <button class="btn ghost" data-ss-rail="${p.id}" title="See it hanging in the 3D boutique">On the rail</button>
+          </div>
+          <p class="err" data-ss-err></p>
+        </div>
+      </div>
+    </article>`).join('');
+
+  $('#studio').addEventListener('click', (e) => {
+    const card = e.target.closest('.ss-card');
+    const t = e.target.closest('button, .ss-photo');
+    if (!t) return;
+    if (t.classList.contains('ss-photo')) return t.classList.toggle('show-back');
+    if (t.dataset.ssSize) {
+      ssSize[card.dataset.id] = t.dataset.ssSize;
+      $$('[data-ss-size]', card).forEach((b) => b.setAttribute('aria-checked', String(b === t)));
+      $('[data-ss-err]', card).textContent = '';
+    } else if (t.dataset.ssAdd) {
+      const id = t.dataset.ssAdd, size = ssSize[id];
+      if (!size) return ($('[data-ss-err]', card).textContent = 'Select a size first');
+      const p = getProduct(id);
+      addToCart({ productId: id, fit: 'oversized', color: p.colors[0], size, qty: 1 });
+      toast(`${p.name} (Oversized · ${size}) added to your bag`);
+      t.classList.add('added');
+      t.textContent = 'Added to bag ✓';
+      setTimeout(() => { t.classList.remove('added'); t.textContent = `Add to bag · ${inr(UNIT_PRICE)}`; }, 1800);
+    } else if (t.dataset.ssShop) {
+      $(`.ss-card[data-id="${t.dataset.ssShop}"]`).scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else if (t.dataset.ssRail) {
+      $('#store').scrollIntoView({ behavior: 'smooth' });
+      setTimeout(() => shop.focusProduct(t.dataset.ssRail), 600);
+    }
+  });
+  const film = $('#ssFilm');
+  $('#ssPause').onclick = () => {
+    if (film.paused) film.play(); else film.pause();
+    $('#ssPause').textContent = film.paused ? '▶' : '❚❚';
+    $('#ssPause').setAttribute('aria-label', film.paused ? 'Play film' : 'Pause film');
+  };
+  // only play the film while it is on screen (saves battery and data on phones)
+  new IntersectionObserver(([en]) => (en.isIntersecting && !film.dataset.userPaused ? film.play().catch(() => {}) : film.pause()), { threshold: 0.25 }).observe(film);
+  $('#ssPause').addEventListener('click', () => (film.dataset.userPaused = film.paused ? '1' : ''));
+}
+
 // ---------------- boot ----------------
 function intro() {
   const c = $('#curtain');
@@ -806,6 +869,7 @@ async function boot() {
   bindJoin();
   bindModals();
   renderBundles();
+  renderStudioSeries();
   buildWheel();
   revealOnScroll();
   renderCart();

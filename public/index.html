@@ -33,6 +33,7 @@
     </a>
     <nav class="hud-links" aria-label="Main">
       <a href="#store">Boutique</a>
+      <a href="#studio">Studio</a>
       <a href="#offers">Offers</a>
       <a href="#story">Founder</a>
       <a href="#track">Track</a>
@@ -77,6 +78,32 @@
         <button data-view="gallery">Founder</button>
         <a href="#offers" class="pill-more" aria-label="Scroll to offers">↓</a>
       </nav>
+    </section>
+
+    <!-- ============ STUDIO SERIES (real photographed tees) ============ -->
+    <section class="studio-series" id="studio">
+      <div class="ss-head">
+        <p class="kicker">The Studio Series · New</p>
+        <h2>Real tees. <em>Shot like a campaign.</em></h2>
+        <p class="lede">Heavyweight oversized cotton with a washed finish, a ribbed crew collar and big front-and-back prints. What you see is what arrives.</p>
+      </div>
+      <div class="ss-film">
+        <video id="ssFilm" autoplay muted loop playsinline preload="metadata" poster="/img/studio/sankat-mochan-film-poster.jpg" aria-label="Sankat Mochan tee campaign film">
+          <source src="/img/studio/sankat-mochan-film.mp4" type="video/mp4" />
+        </video>
+        <div class="ss-film-copy">
+          <p class="kicker light">In motion</p>
+          <h3>Sankat Mochan</h3>
+          <p>Saffron oversized · printed front &amp; back</p>
+          <div class="row gap">
+            <button class="btn light" data-ss-shop="sankat-mochan">Shop this tee</button>
+            <button class="btn ghost-light" data-ss-rail="sankat-mochan">See it on the rail</button>
+          </div>
+        </div>
+        <button class="ss-sound" id="ssPause" aria-label="Pause film">❚❚</button>
+      </div>
+      <div class="ss-grid" id="ssGrid"></div>
+      <ul class="ss-specs"><li>Heavyweight cotton</li><li>Washed finish</li><li>Ribbed crew collar</li><li>Drop shoulder</li><li>DTF printed in India</li></ul>
     </section>
 
     <!-- ============ MARQUEE ============ -->

@@ -33,8 +33,24 @@ The rail shows one collection at a time; the switcher at the top of the boutique
 |---|---|---|
 | **Drop 01 · The Epic** | Kodanda, Lanka Dahan, Dashamukha, Rama Setu, Jatayu, Sanjeevani, Lakshman Rekha, Suryavanshi | 150 pieces each |
 | **The Lankeshwar Capsule** | Lankeshwar (royal crest), Ten Crowns (line art), The Scholar King (rudra veena), Pushpaka (flying chariot) | 99 pieces each |
+| **Studio Series** | Agni Astra (acid-wash royal blue), Lanka Ablaze (acid-wash violet), Sankat Mochan (saffron, front + back): real photographed oversized tees | 150 pieces each |
+| **Drop 02 · Street Epics** | Vanara Sena World Tour, Bajrang, Dharma Yuddha (oversized streetwear) | 150 pieces each |
 
 The Lankeshwar Capsule is original artwork inspired by Raavana of the Ramayana epic: gold-foil gradients and a worn vintage-print texture. It does not use any actor's likeness or the film's character design.
+
+## Adding real photographed tees (Studio Series)
+
+The most lifelike tees are real or AI-rendered product photos: washed heavyweight fabric, ribbed collar, natural folds and soft studio light. To add one:
+
+1. Shoot or generate the tee on a **plain light grey or white backdrop** (front, plus back if printed), about 900 × 1150 px or larger, and save it as WebP/JPG in `public/img/studio/`.
+2. Make the background-free version for the 3D rail:
+   ```bash
+   python3 scripts/make-cutout.py public/img/studio/my-tee.webp public/img/studio/my-tee-cut.webp
+   ```
+   It needs only Pillow and numpy, and keeps white or grey parts of the print because the coloured fabric surrounds them.
+3. Add a product in `public/js/catalog.js` with `collection: 'studio'`, `photo: { front, back?, cut, cutBack? }`, `fits: ['oversized']` and one colour. It then appears in the Studio Series section, on the rail (switcher → *Studio*), in the bag and at checkout.
+
+Optional: a short muted product film (MP4, H.264, ≤ 2 MB) can be shown in the section, like `sankat-mochan-film.mp4`.
 
 ## Look & feel
 

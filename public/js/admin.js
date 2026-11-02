@@ -67,7 +67,7 @@ function render(orders, subscribers) {
     : '<p class="muted" style="padding:20px">No orders yet. Share the boutique!</p>';
 
   $('#print').innerHTML = `<p class="muted">Print-ready vector files (12" × 14.4", transparent background). Open in Illustrator/Inkscape, convert text to outlines, then send to your DTF RIP.</p>
-    <div class="designs">${PRODUCTS.map(
+    <div class="designs">${PRODUCTS.filter((p) => p.art).map(
       (p) => `<div class="d">${teeSVG({ product: p, color: p.colors[0], detail: 'low' })}<b>${esc(p.name)}</b><br/>${p.colors
         .map((c) => `<a href="/api/print/${p.id}.svg?color=${c}">⬇ for ${TEE_COLORS[c].name}</a>`)
         .join('')}${p.back ? `<a href="/api/print/${p.id}.svg?side=back">⬇ back print</a>` : ''}</div>`,
