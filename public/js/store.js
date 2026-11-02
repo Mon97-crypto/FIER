@@ -3,13 +3,34 @@
 import { PRODUCTS, TEE_COLORS, COLLECTIONS, productsIn } from './catalog.js';
 import { BUNDLES, inr } from './pricing.js';
 import { teeSVG, foldedSVG, printArtSVG, photoTee } from './tee.js';
+import { queueBake } from './bake.js';
 
 const W = 3400, H = 1500, D = 2500;
 const RAIL_Y = -1000, RAIL_Z = 70;
 const GW = 360, GH = (GW * 640) / 500, GAP = 390;
 const RAIL_SLOTS = 8; // the wall rail is built for the largest collection
 const DRAWN = PRODUCTS.filter((p) => p.art); // products with vector art (folded stacks, prints)
-const face = (p, color, fit, view = 'front') => (p.photo ? photoTee({ product: p, view }) : teeSVG({ product: p, color, fit, view, detail: DETAIL }));
+// Put a garment face into `box`: photo tees use their image; drawn tees show a light SVG at once,
+// then swap to a pre-rendered high-detail bitmap (see bake.js) so the 3D scene never re-rasterises filters.
+const BAKED = new Map();
+const BAKE_SCALE = () => (LITE ? 2 : Math.min(3, Math.max(2, Math.round((devicePixelRatio || 1) * 1.5))));
+function setFace(box, p, color, fit, view = 'front') {
+  if (p.photo) return void (box.innerHTML = photoTee({ product: p, view }));
+  const key = `${p.id}|${color}|${fit}|${view}`;
+  box.dataset.key = key;
+  const done = BAKED.get(key);
+  if (done) return void box.replaceChildren(done);
+  box.innerHTML = teeSVG({ product: p, color, fit, view, detail: 'low' });
+  queueBake(teeSVG({ product: p, color, fit, view, detail: 'high' }), GW, GH, BAKE_SCALE())
+    .then((c) => {
+      c.className = 'tee baked';
+      BAKED.set(key, c);
+      if (box.dataset.key === key) box.replaceChildren(c);
+    })
+    .catch(() => {
+      if (!LITE && box.dataset.key === key) box.innerHTML = teeSVG({ product: p, color, fit, view, detail: DETAIL });
+    });
+}
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 // Phones/tablets (and every iOS browser, which is WebKit) get lighter garments: SVG filters are
 // expensive to rasterise there and iOS caps graphics memory per tab.
@@ -210,7 +231,8 @@ export class Boutique {
   buildRail() {
     const add = (e) => (this.room.appendChild(e), e);
     this.garments = this.items.map((p, i) => {
-      const g = el('garment', `<div class="g-swing"><div class="g-flip"><div class="g-face front">${face(p, this.colorOf[p.id], this.fitOf[p.id])}</div><div class="g-face back"></div></div></div>`);
+      const g = el('garment', `<div class="g-swing"><div class="g-flip"><div class="g-face front"></div><div class="g-face back"></div></div></div>`);
+      setFace(g.querySelector('.g-face.front'), p, this.colorOf[p.id], this.fitOf[p.id]);
       g.dataset.i = i;
       g.setAttribute('role', 'button');
       g.setAttribute('aria-label', `${p.name} tee, ${inr(499)}`);
@@ -319,15 +341,17 @@ export class Boutique {
     if (color) this.colorOf[p.id] = color;
     if (fit) this.fitOf[p.id] = fit;
     const g = this.garments[i];
-    g.querySelector('.g-face.front').innerHTML = face(p, this.colorOf[p.id], this.fitOf[p.id]);
-    g.querySelector('.g-face.back').innerHTML = '';
+    setFace(g.querySelector('.g-face.front'), p, this.colorOf[p.id], this.fitOf[p.id]);
+    const b = g.querySelector('.g-face.back');
+    b.innerHTML = '';
+    delete b.dataset.key;
     if (g.classList.contains('flipped')) this.flip(i, true);
   }
   flip(i, force) {
     const g = this.garments[i];
     const back = g.querySelector('.g-face.back');
     const p = this.items[i];
-    if (!back.innerHTML) back.innerHTML = face(p, this.colorOf[p.id], this.fitOf[p.id], 'back');
+    if (!back.firstChild) setFace(back, p, this.colorOf[p.id], this.fitOf[p.id], 'back');
     g.classList.toggle('flipped', force ?? !g.classList.contains('flipped'));
     return g.classList.contains('flipped');
   }

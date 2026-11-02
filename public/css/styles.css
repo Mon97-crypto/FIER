@@ -178,12 +178,12 @@ em { font-style: italic; }
 .garment { transform-style: preserve-3d; cursor: pointer; transition: opacity .6s; }
 .g-swing { position: absolute; inset: 0; transform-style: preserve-3d; transform-origin: 50% 3%; }
 .g-flip { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform .9s var(--ease); }
-.g-face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; filter: drop-shadow(16px 26px 16px rgba(50, 32, 16, .3)); }
+/* no CSS filters on garments: they force a full re-raster on every camera move */
+.g-face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
 .g-face.back { transform: rotateY(180deg); }
 /* phones: no per-garment filter surface; a cheap painted shadow instead */
-.viewport.lite .g-face { filter: none; }
-.viewport.lite .g-swing::before { content: ''; position: absolute; left: 16%; right: 10%; top: 22%; bottom: 2%; transform: translate(14px, 18px); background: radial-gradient(ellipse at 50% 45%, rgba(50, 32, 16, .2), rgba(50, 32, 16, 0) 70%); }
-.g-face .tee { width: 100%; height: 100%; }
+.g-swing::before { content: ''; position: absolute; left: 16%; right: 10%; top: 22%; bottom: 2%; transform: translate(14px, 18px); background: radial-gradient(ellipse at 50% 45%, rgba(50, 32, 16, .2), rgba(50, 32, 16, 0) 70%); }
+.g-face .tee { width: 100%; height: 100%; display: block; }
 .garment.hover .g-flip { transform: translateZ(26px); }
 .garment.flipped .g-flip { transform: translateZ(26px) rotateY(180deg); }
 .g-label { display: grid; justify-items: center; text-align: center; line-height: 1.25; opacity: 0; transition: opacity .35s; pointer-events: none; }
