@@ -2,6 +2,10 @@
 
 **Fear None. Burn Bright.** A walk-in 3D virtual boutique for **Drop 01: the Ramayana: Part 1 collection**: eight original, DTF-ready tees at ₹499 each, in sizes S–XL, for men and women. Each design is limited to 150 pieces.
 
+## CEA: Cost Estimating Application
+
+`cea/` is a separate mobile web app for the T-shirt startup estimate (`Tshirt_Startup_Estimate_499.xlsx`): the sheet's prices and revenue, a price simulator and saved simulations. It deploys as its own Vercel project with Root Directory `cea`. See [`cea/README.md`](cea/README.md).
+
 ## The boutique
 
 The home page is a virtual store built with pure CSS 3D (no WebGL, no libraries). It's a plaster gallery with pegboard walls, track lighting, an oak display table, plants, a neon sign and a chrome rail. You arrive outside the storefront and glide in through the doorway.

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en-IN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>CEA · Cost Estimating Application</title>
+  <meta name="description" content="CEA — the T-shirt startup estimate at ₹499: every price, the estimated revenue, a price simulator and saved simulations.">
+  <meta name="theme-color" content="#efebe2" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0e0f11" media="(prefers-color-scheme: dark)">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="CEA">
+  <link rel="icon" href="/img/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/img/icon.svg">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/cea.css">
+  <script>
+    try { const t = localStorage.getItem('cea.theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch {}
+  </script>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <a class="logo" href="#/summary" aria-label="CEA home">
+        <span class="logo-mark">CEA</span>
+        <span class="logo-text"><b>CEA</b><span>Cost Estimating Application</span></span>
+      </a>
+      <span class="spacer"></span>
+      <span class="pill" id="storage-pill" title="Where simulations are saved"><span class="dot"></span><span class="lbl">Checking…</span></span>
+      <button class="icon-btn" id="theme-btn" aria-label="Change theme"></button>
+    </header>
+
+    <main>
+      <section class="view" id="view-summary" aria-labelledby="t-summary"></section>
+      <section class="view" id="view-estimate" aria-labelledby="t-estimate"></section>
+      <section class="view" id="view-simulate" aria-labelledby="t-simulate"></section>
+      <section class="view" id="view-saved" aria-labelledby="t-saved"></section>
+    </main>
+
+    <nav class="nav" aria-label="Sections">
+      <a href="#/summary" data-view="summary"><span data-icon="summary"></span>Summary</a>
+      <a href="#/estimate" data-view="estimate"><span data-icon="sheet"></span>Estimate</a>
+      <a href="#/simulate" data-view="simulate"><span data-icon="simulate"></span>Simulate</a>
+      <a href="#/saved" data-view="saved"><span data-icon="saved"></span>Saved<span class="badge" id="saved-badge"></span></a>
+    </nav>
+  </div>
+
+  <div class="sheet" id="sheet" aria-hidden="true">
+    <div class="sheet-backdrop" data-close></div>
+    <div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="sheet-title"><div class="grip"></div><div id="sheet-body"></div></div>
+  </div>
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>

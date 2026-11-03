@@ -1,0 +1,14 @@
+{
+  "name": "cea",
+  "version": "1.0.0",
+  "description": "CEA — Cost Estimating Application: the T-shirt startup estimate, live, with a price simulator and saved simulations.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": { "node": ">=18.17" },
+  "license": "UNLICENSED"
+}

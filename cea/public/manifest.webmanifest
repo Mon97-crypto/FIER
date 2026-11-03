@@ -1,0 +1,9 @@
+{
+  "name": "CEA — Cost Estimating Application",
+  "short_name": "CEA",
+  "start_url": "/#/summary",
+  "display": "standalone",
+  "background_color": "#efebe2",
+  "theme_color": "#15161a",
+  "icons": [{ "src": "/img/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
